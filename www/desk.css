@@ -1,0 +1,72 @@
+body{
+	margin:0;
+	overflow:hidden;
+	overscroll-behavior-x: none;
+}
+.scroller::-webkit-scrollbar{width:0.5em;background-color:#bbb;}
+.scroller::-webkit-scrollbar-thumb{background-color:#666;}
+.scroller:focus{outline:none;}
+.mainwin::-webkit-scrollbar{width:0.5em;background-color:#bbb;}
+.mainwin::-webkit-scrollbar-thumb{background-color:#666;}
+.mainwin:focus{outline:none;}
+.link{
+	text-decoration:underline;
+	color:blue;
+}
+a:hover{
+	cursor:pointer;
+}
+.clicked{
+	text-decoration:none;
+	font-style:italic;
+	color:#999;
+}
+.clicked:hover{
+	cursor:default;
+}
+.hilite{
+	font-weight:bold;
+	color:red;
+}
+@keyframes shake {
+	10%,90%{transform:translate3d(-0.25px,0,0);}
+	20%,80%{transform:translate3d(0.1px,0,0);}
+	30%,50%,70%{transform:translate3d(-1px,0,0);}
+	40%,60%{transform:translate3d(1px,0,0);}
+}
+
+.icon {
+	color:#ccc;
+	height:100px;
+	width:100px;
+	overflow:hidden;
+	display:flex;
+	flex-direction:column;
+	justify-content:space-around;
+	align-items:center;
+	border:2px solid transparent;
+	text-align:center;
+}
+.iconi{
+	min-width:48;
+	text-align:center;
+	font-size:38;
+	position:relative;
+}
+.iconw{
+	text-align:center;
+	min-width:48;
+	border:1px dotted #aaa;
+	display:inline-block;
+	position:relative
+}
+.iconl {
+	overflow:hidden;
+	max-height:17px;
+	text-align:center;
+	overflow-wrap:break-word;
+	width:94px;
+	font-size:15;
+	background-color:#000;
+	padding:1px;
+}
