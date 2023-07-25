@@ -895,104 +895,6 @@ const com_appicon=(term, args, redir)=>{//«
 
 //»
 
-/*Unused«
-const com_faust=async(term, args, redir)=>{//«
-	let val;
-	let SUCC;
-	let faustWorker = globals.workers.faust;
-	faustWorker.onmessage=(e)=>{
-		let dat = e.data;
-		if (dat.error) return SUCC(dat);
-		dat.factory && SUCC(dat.factory);
-	};
-	const get_factory=()=>{
-		return new Promise((Y,N)=>{
-			SUCC = Y;
-			faustWorker.postMessage({compile: val});
-		})
-	};
-	const terr=(arg)=>{term_error(term, arg);return TERM_ERR;};
-	if (!args.length) return terr("Need a filename");
-	let name = args.shift();
-	let node = await pathToNode(normPath(name, term.cur_dir));
-	if (!node) return terr(`${name}: not found`);
-	val = await node.text;
-	let fac = await get_factory();
-	if (isstr(fac.error)) {
-		return terr(fac.error.replace(/\n/g," "));
-	}
-//Faust file format: 
-//First 2 bytes: ascii numbers for string length (n) that encodes the length of the code (l)
-//Next n bytes: ascii numbers for the code length (l)
-//Next l bytes: the WebAssembly (wasm) code
-//Remaining bytes: the json object with "size" and "ui" fields
-	let code = fac.code;
-	let o = {
-		size : fac.json_object.size,
-		ui : fac.json_object.ui
-	};
-	let codelenstr = code.length+"";
-	let codelenlenstr = (codelenstr.length+"").padStart(2, "0");
-	let lenbytes = await capi.toBytes(`${codelenlenstr}${codelenstr}`);
-	let obytes = await capi.toBytes(JSON.stringify(o));
-	let out = new Uint8Array(lenbytes.length + code.length + obytes.length);
-	out.set(lenbytes, 0);
-	out.set(code, lenbytes.length);
-	out.set(obytes, lenbytes.length+code.length);
-
-	if (redir) return write_to_redir(term, out, redir)
-	let base = `${term.cur_dir}/${node.baseName}`;
-	let didsave = false;
-	for (let i=0; i < 100; i++){
-		let path = base;
-		if (i) path+=`${i}`;
-		path+='.faust';
-		if (!await pathToNode(path)){
-			if (await fsapi.writeFile(path, out)){
-				didsave = true;
-			}
-			break;
-		}
-	}
-	if (!didsave) return terr(`The output could not be saved`);
-	return TERM_OK;
-};//»
-const com_cutwebm = async (term, args) => {//«
-	const terr=(arg)=>{term_error(term, arg);return TERM_ERR;};
-	const tout=(arg)=>{term_out(term, arg);return TERM_OK;};
-
-	let path = args.shift();
-	let fullpath = normPath(path, term.cur_dir);
-	let node = await fsapi.pathToNode(fullpath);
-	if (!node) return terr(`${fullpath}: No such file or directory`);
-	let webm = await capi.getMod("webmparser");
-	let webm_cut = webm.coms.cut;
-const codecs = ['avc1.42001E', 'vp8', 'vp09.00.10.08', 'av01.0.04M.08'];
-
-//let codec = codecs[0];
-let codec = "H.264";
-
-try{
-//let desc = new Uint8Array([ 86,95,77,80,69,71,52,47,73,83,79,47,65,86,67 ]);
-//log(desc);
-//
-let rv = await webm_cut(fullpath, 2.8, 2.8+6.43, 1366, 768, codec);
-//let rv = await webm_cut(fullpath, 2.8, 2.8+6.43, 360, 480, codec);
-//if (!await fsapi.writeFile(out_path, rv)){
-//return terr("There was a problem writing the file");
-//}
-if (rv) {
-log("OKAY!!!");
-log(rv);
-}
-}catch(e){
-log(e);
-}
-//log(node);
-
-};//»
-»*/
-
 const shell_commands={//«
 //mkicon: com_mkicon,
 webmcat: com_webmcat,
@@ -1027,16 +929,6 @@ vim:com_vim,
 mount: com_mount,
 unmount: com_unmount,
 //env: NOOP
-/*
-:NOOP,
-:NOOP,
-:NOOP,
-:NOOP,
-:NOOP,
-:NOOP,
-:NOOP,
-:NOOP,
-*/
 };//»
 
 const BUILTINS = shell_commands._keys;
