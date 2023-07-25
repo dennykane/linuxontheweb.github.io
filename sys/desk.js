@@ -502,6 +502,7 @@ _.ael = function(which, fun){this.addEventListener(which, fun, false);}
 _.html = function(str) {this.innerHTML = str;}
 _.vcenter=function(amount){if(!amount)amount="50%";this._pos="relative";this._y=amount;this.style.transform="translateY(-"+amount+")";}
 _.flexcol=function(if_off){if(if_off){this.style.display="";this.style.alignItems="";this.style.justifyContent="";this.style.flexDirection="";}else{this.style.display="flex";this.style.alignItems="center";this.style.justifyContent="center";this.style.flexDirection="column";}}
+_.scrollIntoViewIfNeeded || (_.scrollIntoViewIfNeeded = _.scrollIntoView);
 
 _ = String.prototype;
 _.regstr=function(useend){var endsp="";if(useend)endsp=" ";return this.replace(/^[\x20\t]+/g,"").replace(/[\x20\t]+$/g,endsp).replace(/[\x20\t]+/g," ");}
