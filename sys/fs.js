@@ -1350,10 +1350,12 @@ return;
 		};
 //		if (pos_arr) file = file.slice(pos_arr[0], pos_arr[1]);
 		if (Number.isFinite(start)) {
-			if (Number.isFinite(end)) {
-				file = file.slice(start, end);
+			if (file.slice) {
+				if (Number.isFinite(end)) {
+					file = file.slice(start, end);
+				}
+				else file = file.slice(start);
 			}
-			else file = file.slice(start);
 		}
 		if (if_blob) reader.readAsArrayBuffer(file);
 		else reader.readAsText(file);
