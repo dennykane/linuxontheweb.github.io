@@ -1363,10 +1363,11 @@ return;
 //»
 const get_blob_dir=()=>{//«
 	return new Promise(async(Y,N)=>{
-		if (!window.webkitRequestFileSystem)  {
+		window.requestFileSystem = window.webkitRequestFileSystem;
+		if (!window.requestFileSystem)  {
 			await capi.makeScript("/www/fs-shim.js");
 		}
-		window.webkitRequestFileSystem(TEMPORARY, 10*1024*1024, rv=>{
+		window.requestFileSystem(TEMPORARY, 10*1024*1024, rv=>{
 			rv.root.getDirectory("blobs",{create: true},Y,()=>{
 				Y();
 			});
