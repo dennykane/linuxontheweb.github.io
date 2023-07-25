@@ -1268,10 +1268,12 @@ cwarn("Format not given, defaulting to 'arraybuffer'");
 			return Y(val);
 		};
 		if (Number.isFinite(start)) {
-			if (Number.isFinite(end)) {
-				file = file.slice(start, end);
+			if (file.slice) {
+				if (Number.isFinite(end)) {
+					file = file.slice(start, end);
+				}
+				else file = file.slice(start);
 			}
-			else if (file.slice) file = file.slice(start);
 		}
 		if (format==="text") reader.readAsText(file);
 		else if (format=="binarystring") reader.readAsBinaryString(file);
