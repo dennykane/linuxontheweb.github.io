@@ -524,7 +524,7 @@ const DESK_CONTEXT_MENU=[
 	],
 	"\u{1f4ca}\xa0\xa0About",()=>{make_popup({WIDE:true,STR: ABOUT_STR, TIT: "About"});},
 	"\u{1f5b3}\u{2009}\xa0Terminal",()=>{open_terminal()},
-	"\xa0\u{2442}\xa0\xa0\xa0Fork\xa0me!",()=>{
+	"\xa0\u{2442}\xa0\xa0\xa0\xa0Fork\xa0me!",()=>{
 		window.open("https://github.com/linuxontheweb/linuxontheweb.github.io/");
 	},
 ];
@@ -3120,6 +3120,7 @@ Object.defineProperty(this, "title", {//«
 	}
 });//»
 
+	this.Desk = Desk;
 	this.bottom_div = bottom_div;
 	this.status_bar = statdiv;
 	this.rs_div = rsdiv;

@@ -1,5 +1,9 @@
 # Linux on the Web (LOTW)
 
+Linux used to be fun because expectations were low and possibilities were high. 
+The online communities that gathered around it were truly pleasurable to be a part of.
+I hope to bring those same feelings back in the context of web development.
+
 ## FYI
 
 Since I am only one person, and I mainly like working with Chromebooks [1], 
@@ -13,7 +17,7 @@ There are no plans to worry over any Apple-only browser engines.
 [1] Chromebooks are very cheap and easy to put into developer mode to install a working
 Linux system, via [the crouton environment](https://github.com/dnschneid/crouton).
 
-## Viewing and editing files
+## Viewing and editing source files
 
 vim is the recommended text editor, mainly because of the ability to 
 enable row folding via the manual insertion of markers. The instructions below 

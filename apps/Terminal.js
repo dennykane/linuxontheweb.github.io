@@ -1353,11 +1353,11 @@ const DEL_MODS=[
 
 //»
 
-export const app = function(Win, Desk) {
+export const app = function(Win) {
 
 //Var«
 
-const main = Win.main;
+const {main, Desk} = Win;
 const topwin = Win;
 const winid = topwin.id;
 const termobj = this;
