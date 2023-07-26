@@ -8,6 +8,8 @@ this project is currently only very useful for Chromium-based browsers.
 My next priority is to make this project also work well with Firefox browsers in 
 various Linux distributions.
 
+There are no plans to worry over any Apple-only browser engines.
+
 [1] Chromebooks are very cheap and easy to put into developer mode to install a working
 Linux system, via [the crouton environment](https://github.com/dnschneid/crouton).
 
