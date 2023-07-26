@@ -33,7 +33,6 @@ as intended, the following lines must be included in your .vimrc:
 	set foldmarker=«,»
 	set foldlevelstart=0
 
-### Toggling folds
 To quickly toggle between opened and closed row folds with the Enter key, add this line:
 
 	nmap <enter> za
