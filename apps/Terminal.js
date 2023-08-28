@@ -1,7 +1,34 @@
 
-const allow_write_locked = false;//«
+let PARAGRAPH_SELECT_MODE = true; //Toggle with Ctrl+Alt+p«
+/*
+When using the text editor, we have to manually insert line breaks inside of paragraphs
+at the end of every line:
 
-//»
+-------------------------------------
+These are a bunch of words that I'm   
+writing, so I can seem very
+literate, and this is a crazily-
+hyphenated-word!
+
+Here comes another paragraph...
+-------------------------------------
+
+With PARAGRAPH_SELECT_MODE turned on, the system clipboard will contain the following
+text upon executing the do_copy_buffer command with Cltr+Alt+a (a_CA).
+
+-------------------------------------
+These are a bunch of words that I'm writing, so I can seem very literate, and this is a crazily-hyphenated-word!
+
+Here comes another paragraph...
+-------------------------------------
+
+The actual line buffer in the editor is left unchanged. This is just a convenience function
+to allow for seamless copying between the editor and web-like applications that handle their 
+own formatting of paragraphs.
+
+Toggling of PARAGRAPH_SELECT_MODE is now done with Ctrl+Alt+p (p_CA).
+
+»*/
 
 //Imports«
 
@@ -19,6 +46,9 @@ const {pathToNode}=fsapi;
 //Shell«
 
 //Var«
+
+//To allow writing of files even if there is an external lock on it, change this to true
+const allow_write_locked = false;
 
 const NOOP=()=>{return TERM_ERR;};
 const TERM_OK = 0;
@@ -1346,8 +1376,8 @@ $ cat ' 'file w<TAB>
 //Development mod deleting«
 
 const DEL_MODS=[
-	"editor",
-	"webmparser"
+//	"editor",
+//	"webmparser"
 //	"pager"
 ];
 
@@ -1872,7 +1902,7 @@ const get_homedir=()=>{//«
 	if (root_state) return "/";
 	return globals.HOME_PATH;
 };//»
-const get_buffer=(if_str, if_no_buf)=>{//«
+const get_buffer = (if_str, if_no_buf)=>{//«
 	let ret=[];
 	if (if_str) ret = "";
 	let ln;
@@ -1890,6 +1920,29 @@ const get_buffer=(if_str, if_no_buf)=>{//«
 			if (if_str) ret +=  ln + "\n"
 			else ret.push(ln);
 	}
+
+	if ((editor||pager) && PARAGRAPH_SELECT_MODE){
+		if (if_str) ret = ret.split("\n");
+		let paras = [];
+		let curln = "";
+		for (let ln of ret){
+			if (ln.match(/^\s*$/)){
+				if (curln) {
+					paras.push(curln);
+					curln = "";
+				}
+				paras.push("");
+				continue;
+			}
+			if (ln.match(/-\s*$/)) ln = ln.replace(/-\s+$/,"-");
+			else ln = ln.replace(/\s*$/," ");
+			curln = curln + ln;
+		}
+		if (curln) paras.push(curln);
+		if (if_str) ret = paras.join("\n");
+		else ret = paras;
+	}
+
 	return ret;
 };
 this.real_get_buffer=get_buffer;
@@ -1929,6 +1982,7 @@ const do_clear_line=()=>{//«
 	current_cut_str = str;
 	render();
 };//»
+const do_copy_buffer = () => { copy_text(get_buffer(true), "Copied: entire buffer"); };
 const do_clipboard_copy=(if_buffer, strarg)=>{//«
 const do_copy=str=>{//«
     if (!str) return;
@@ -3976,7 +4030,12 @@ const handle=(sym, e, ispress, code, mod)=>{//«
 		}
 		else if (sym=="c_CS") return do_clipboard_copy();
 		else if (sym=="v_CS") return do_clipboard_paste();
-		else if (sym=="a_CA") return copy_text(get_buffer(true), "Copied: entire buffer");
+		else if (sym=="a_CA") return do_copy_buffer();
+		else if (sym=="p_CA"){
+			PARAGRAPH_SELECT_MODE = !PARAGRAPH_SELECT_MODE;
+			do_overlay(`Paragraph select: ${PARAGRAPH_SELECT_MODE}`);
+			return;
+		}
 	}//»
 	if (code == KC['TAB'] && e) e.preventDefault();
 	else await_next_tab = null;

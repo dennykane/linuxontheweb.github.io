@@ -1,0 +1,37 @@
+#!/bin/bash
+#DATE=`date +%m%d%y_%H%M`
+DATE=`date +%m%d%y`
+
+
+cd ~/
+GOODDATE=0
+for i in $(seq -w 0 9); do
+	DATENUM=LOTW_${DATE}_${i}
+	echo "Checking for '$DATENUM.zip'..."
+#	if [[ ! -e ${DATENUM}.zip ]]; then
+	if [[ ! -e ${DATENUM}.zip ]]; then
+		GOODDATE=1
+		break;
+	fi
+done;
+
+if [[ GOODDATE -eq 1 ]]; then
+	echo "Got good DATENUM=${DATENUM}!"
+else
+	echo "Could not find a good name for the zipfile!"
+	exit;
+fi
+
+cd ~/
+
+zip -y -r $DATENUM lotw/ -x \*.sw[nop] -x \*/.git/\*
+
+#zip -y -r $DATENUM lotw/ -x \*.sw[nop] -x \*/.git/\* -x lotw/www/examples/games -x lotw/www/examples/sounds
+
+cp $DATENUM.zip usb/
+cp $DATENUM.zip ssd/
+cp $DATENUM.zip CUR.zip
+
+#cp $DATENUM.zip jdrive/lotw/versions/2022/
+
+

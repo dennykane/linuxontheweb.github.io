@@ -1,2 +1,2 @@
-node ~/bin/js/getdir.js $1
+node ~/lotw/bin/js/getdir.js $1
 
