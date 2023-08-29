@@ -8083,6 +8083,7 @@ console.log(mess);
 			make_read_only();
 		}
 	},250);
+	body.removeChild(gbid("error_message"));
 })();
 
 //»
