@@ -7472,7 +7472,7 @@ or when there is an active context menu.
 //«
 	if (cwin) {
 		if (!text_inactive) {
-			if (code >= 37 && code <= 40 && mod_str == "S") e.preventDefault();
+			if (code >= 37 && code <= 40 && (mod_str == "S" || mod_str == "CS")) e.preventDefault();
 		}
 	} else {
 		if (code >= 33 && code <= 40 && text_inactive) e.preventDefault();

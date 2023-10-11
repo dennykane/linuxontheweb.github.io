@@ -67,6 +67,7 @@ const term_out=(term, arg)=>{//«
 	term.response({SUCC: arg, NOEND: true});
 };//»
 const write_to_redir=async(term, str, redir)=>{//«
+log(123);
 	const terr=(arg)=>{term_error(term, arg);return TERM_ERR;};
 	const tout=(arg)=>{term_out(term, arg);return TERM_OK;};
 
@@ -75,6 +76,11 @@ const write_to_redir=async(term, str, redir)=>{//«
 	let fname = redir.shift();
 	if (!fname) return terr(`Missing operand to the redirection operator`);
 	let fullpath = normPath(fname, term.cur_dir);
+	let node = await fsapi.pathToNode(fullpath);
+	if (node && node.write_locked){
+		return terr(`${fname}: the file is "write locked"`);
+	}
+
 	let patharr = fullpath.split("/");
 	patharr.pop();
 	let parpath = patharr.join("/");
