@@ -524,7 +524,7 @@ const DESK_CONTEXT_MENU=[
 	],
 	"\u{1f4ca}\xa0\xa0About",()=>{make_popup({WIDE:true,STR: ABOUT_STR, TIT: "About"});},
 	"\u{1f5b3}\u{2009}\xa0Terminal",()=>{open_terminal()},
-	"\xa0\u{2442}\xa0\xa0\xa0\xa0Fork\xa0me!",()=>{
+	'\xa0<span style="font-size: 21px;"><b>\u{2442}</b></span>\xa0\xa0\xa0\xa0Fork\xa0me!',()=>{
 		window.open("https://github.com/linuxontheweb/linuxontheweb.github.io/");
 	},
 ];
@@ -6133,7 +6133,7 @@ const ContextMenu=function(elem, loc, type, prevelem, noarg, if_internal) {//«
 		menu._add(div);
 		if (isarr(val)) {
 			div._tcol="#000";
-			namesp.innerHTML = name.tonbsp();
+			namesp.innerHTML = name;
 			let sp = make('span');
 			sp.style.textAlign = "right";
 			sp._fs = 12;
@@ -6156,7 +6156,7 @@ const ContextMenu=function(elem, loc, type, prevelem, noarg, if_internal) {//«
 				name = name.replace(/\x20*__CHECK__\x20*$/, "");
 				mark = '&#10003;'
 			}
-			namesp.innerHTML = name.tonbsp();
+			namesp.innerHTML = name;
 			check_menu_width(namesp);
 			if (mark) {
 				let sp = make('span');
