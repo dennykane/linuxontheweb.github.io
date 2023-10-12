@@ -8,6 +8,13 @@ The only other issue might be doing a truncate.
 
 Now, want to work on more possibilities for the ways that data is stored inline, inside the indexedDB.
 
+Per: https://developer.mozilla.org/en-US/docs/Web/API/FileSystemHandle
+
+FileSystemFileHandle.remove's NOT SUPPORTED in Firefox (or Safari):
+@DJUTYIO
+
+FileSystemDirectoryHandle.remove's NOT SUPPORTED work in Firefox (or Safari):
+@SLKIUNL
 
 */
 /*_TODO_: Tilde expansion, allowing for arbitrary relative paths in Link«
@@ -661,9 +668,11 @@ return;
 cwarn(`COULD NOT GET ENTRY: ${blobId}`);
 		}
 		else{
-			fent.remove(NOOP,(e)=>{
-cerr(e);
-			});
+//DJUTYIO
+			if (fent.remove) await fent.remove();
+			else{
+cwarn("No fent.remove!");
+			}
 		}
 	}
 
@@ -673,11 +682,19 @@ cerr(e);
 };//»
 const clearStorage =()=>{//«
 	return new Promise(async(Y,N)=>{
-		if (!BLOB_DIR) BLOB_DIR = await get_blob_dir();
-		if (!BLOB_DIR) return;
-		await BLOB_DIR.remove({ recursive: true });
-//		delete localStorage['nextBlobId'];
-		await get_blob_dir();
+			if (!BLOB_DIR) BLOB_DIR = await get_blob_dir();
+			if (!BLOB_DIR) return;
+//SLKIUNL
+			if (BLOB_DIR.remove) {
+				await BLOB_DIR.remove({ recursive: true });
+			}
+			else{
+
+cwarn("No BLOB_DIR.remove!");
+
+			}		
+
+//		await get_blob_dir();
 		let rv = await db.dropDatabase();
 		localStorage.clear();
 		Y(true);

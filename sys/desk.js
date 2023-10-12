@@ -1081,7 +1081,7 @@ else if (node.link){
 }
 else if (node.appName) app = node.appName;
 else if (ext) app = capi.extToApp(ext.toLowerCase());
-if (!app) app = "util.BinView";
+if (!app) app = DEF_BIN_OPENER;
 
 if (app=="Application"&&node.ref&&node.ref.appicon){
 	try{linkapp=JSON.parse(node.ref.appicon).app;}
@@ -7363,7 +7363,9 @@ open a print dialog if you never print anything or even have a printer!)
 		"d_A":1,
 		"p_C":1,
 		"j_C":1,
-		f_A:1
+		f_A:1,
+		t_A: 1,
+		"/_": 1
 //PGUP_:1,
 //PGDN_:1
 	};
