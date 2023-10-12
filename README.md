@@ -6,7 +6,7 @@ I hope to bring those same feelings back in the context of web development.
 
 ## FYI
 
-Since I am only one person, and I mainly like working with Chromebooks [1], 
+Since I'm only one person, and I mainly like working with Chromebooks [1], 
 this project is currently only very useful for Chromium-based browsers.
 
 My next priority is to make this project also work well with Firefox browsers in 
