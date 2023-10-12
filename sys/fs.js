@@ -1,4 +1,15 @@
+/*Early OCTOBER 2023:
+Just switched this to the Origin Private File System format (instead of the old webkitRequestFileSystem way),
+which uses navigator.storage.getDirectory(). 
+Still need to implement command line append ">>", which would force us to do a writer.seek 
+@YTGEOPIUNMH. Otherwise, we have seek working in append_slice @EOPKIMNHKJ.
 
+The only other issue might be doing a truncate.
+
+Now, want to work on more possibilities for the ways that data is stored inline, inside the indexedDB.
+
+
+*/
 /*_TODO_: Tilde expansion, allowing for arbitrary relative paths in Link«
 targets.
 »*/
@@ -280,7 +291,23 @@ if (!await del_by_id(id)) return;
 return true;
 
 };//»
-
+this.dropDatabase = () => {
+	return new Promise((Y,N)=>{
+		db.close();
+		const req = window.indexedDB.deleteDatabase(DBNAME);
+		req.onerror = (event) => {
+cerr("Error deleting database.");
+			Y();
+		};
+		req.onblocked = (e)=>{
+cwarn("BLOCKED");
+			Y();
+		};
+		req.onsuccess = (event) => {
+			Y(true);
+		};
+	});
+};
 
 }//»
 
@@ -388,7 +415,23 @@ const Node = function(arg){
 	};//»
 	Object.defineProperty(this,"buffer",{get:()=>{if(!okget())return;return getBlob(this,{buffer:true});}});
 	Object.defineProperty(this,"bytes",{get:()=>{if(!okget())return;return getBlob(this,{bytes:true});}});
-	Object.defineProperty(this,"text",{get:()=>{if(!okget())return;return getBlob(this,{text:true});}});
+	Object.defineProperty(this, "text", {
+		get: () => {
+			if (!okget()) return;
+			return getBlob(this, {
+				text: true
+			});
+		}
+	});
+	Object.defineProperty(this, "_file", {
+		get: () => {
+			if (!okget()) return;
+			return getBlob(this, {
+				getFileOnly: true
+			});
+		}
+	});
+
 	Object.defineProperty(this, "fullpath", {//«
 		get:()=>{
 			let str = this.name;
@@ -628,17 +671,16 @@ cerr(e);
 
 });
 };//»
-const clearBlobs =()=>{//«
+const clearStorage =()=>{//«
 	return new Promise(async(Y,N)=>{
 		if (!BLOB_DIR) BLOB_DIR = await get_blob_dir();
 		if (!BLOB_DIR) return;
-		BLOB_DIR.removeRecursively(()=>{
-			delete localStorage['nextBlobId'];
-			Y(true)
-		},
-		()=>{
-			Y();
-		});
+		await BLOB_DIR.remove({ recursive: true });
+//		delete localStorage['nextBlobId'];
+		await get_blob_dir();
+		let rv = await db.dropDatabase();
+		localStorage.clear();
+		Y(true);
 	});
 };//»
 const check_ok_rm = (path, errcb, is_root, do_full_dirs)=>{//«
@@ -1175,7 +1217,9 @@ return new Promise(async(Y,N)=>{
 		}
 		let ent = await get_blob_entry(`${bid}`);
 		if (!ent) return Y();
-		file = await get_fs_file_from_entry(ent);
+		file = await ent.getFile();
+		if (opts.getFileOnly) return Y(file);
+//		file = await get_fs_file_from_entry(ent);
 	}
 	if (!file) return Y();
 	let fmt;
@@ -1365,8 +1409,12 @@ return;
 	});
 }
 //»
+/*
 const get_blob_dir=()=>{//«
 	return new Promise(async(Y,N)=>{
+let opfs = await navigator.storage.getDirectory();
+log(opfs);
+
 		window.requestFileSystem = window.webkitRequestFileSystem;
 		if (!window.requestFileSystem)  {
 			await capi.makeScript("/www/fs-shim.js");
@@ -1380,20 +1428,31 @@ const get_blob_dir=()=>{//«
 		});
 	});
 };//»
+*/
+const get_blob_dir=async ()=>{//«
+let opfs = await navigator.storage.getDirectory();
+let blobDir = await opfs.getDirectoryHandle('blobs', {create: true});
+return blobDir;
+};//»
 const get_blob_entry=(name, if_no_create)=>{//«
 	return new Promise(async(Y,N)=>{
 		if (!BLOB_DIR) BLOB_DIR = await get_blob_dir();
 		let opts;
 		if (if_no_create) opts={};
 		else opts={create: true};
-		BLOB_DIR.getFile(name,opts,Y,()=>{Y()})
+//		BLOB_DIR.getFile(name,opts,Y,()=>{Y()})
+		let blob_ent = await BLOB_DIR.getFileHandle(name, opts);
+		Y(blob_ent);
+//log(blob_ent);
 	});
 };//»
-const get_fs_file_from_entry=(ent)=>{//«
-	return new Promise((Y,N)=>{
-		ent.file(Y);
-	});
-};//»
+//const get_fs_file_from_entry=async(ent)=>{//«
+//	return await ent.getFile();
+//	return new Promise((Y,N)=>{
+//Y(ent.getFile());
+//		ent.file(Y);
+//	});
+//};//»
 const get_fs_file_from_fent = (fent, if_blob, mimearg, start, end) =>{//«
 	return new Promise((Y,N)=>{
 		_get_fs_file_from_fent(fent, Y, if_blob, mimearg, start, end)
@@ -1428,7 +1487,7 @@ const writeFile = (path, val, opts = {}) => {//«
 		else if (rootdir === "dev"){
 			let name = arr.shift();
 			if (name==="null"){}
-			else if (name==="log") log(val);
+			else if (name==="log") console.log(val);
 			Y(true);
 		}
 		else {
@@ -1439,6 +1498,9 @@ cerr("Invalid or unsupported root dir:\x20" + rootdir);
 }//»
 const saveFsByPath=(path, val, opts={})=>{//«
 return new Promise(async(Y,N)=>{
+
+if (globals.read_only)return Y();
+
 let wasnull=false;
 let blob;
 let node = await pathToNode(path);
@@ -1491,7 +1553,6 @@ log(val);
 	Y();
 	return;
 }
-
 let sz = await write_blob(fent, blob, opts);
 
 node.size = sz;
@@ -1545,6 +1606,13 @@ return new Promise(async(Y,N)=>{
 		blob = new Blob([startblob, blob, endblob]);
 	}
 	else realsize = blob.size;
+	let writer = await fent.createWritable();
+//YTGEOPIUNMH
+//	if (append) writer.seek(writer.length);
+	await writer.write(blob);
+	await writer.close();
+	Y(blob.size);
+/*«
 	fent.createWriter(function(writer) {
 		if (append) writer.seek(writer.length);
 		let truncated = false;
@@ -1563,7 +1631,7 @@ cerr('WRITE ERR:' + fname + " " + val.length);
 		};
 		writer.write(blob);
 	}, ()=>{Y()});
-
+»*/
 });
 }
 //»
@@ -2099,12 +2167,27 @@ cerr("NEED FULLPATH IN CHECK_FS_BY_PATH");
 	check_and_save(basename);
 };//»
 const append_slice=(slice)=>{//«
-return new Promise((Y,N)=>{
+return new Promise(async(Y,N)=>{
 
 const err=(e)=>{Y();};
-fEnt.createWriter(function(writer) {
+
+//	let writer = await fent.createWritable();
+//	await writer.write(blob);
+//	await writer.close();
+//	Y(blob.size);
+
+//fEnt.createWriter(function(writer) {
 //This appends append
-	writer.seek(writer.length);
+	let writer = await fEnt.createWritable();
+//log(writer.length);
+//log(writer.seek);
+//EOPKIMNHKJ
+	await writer.seek(curpos);
+	await writer.write(slice);
+	await writer.close();
+//log(curpos, slice.size);
+	Y(curpos+slice.size);
+/*
 	let truncated = false;
 	writer.onwriteend = async function(e) {
 		let size = this.position;
@@ -2118,8 +2201,9 @@ fEnt.createWriter(function(writer) {
 	writer.onerror = function(e) {
 		Y();
 	};
-	writer.write(slice);
-}, err);
+*/
+//	writer.write(slice);
+//}, err);
 
 });
 }//»
@@ -2658,7 +2742,7 @@ this.set_desk = function(arg) {//«
 this.api = {//«
 	init,
 
-	clearBlobs,
+	clearStorage,
 	makeLink,
 	touchFile,
 	saveFsByPath,

@@ -288,10 +288,15 @@ const init_wasm=async(wasm, jsmod, bytes, namearg)=>{//«
 		init_emulator(gotjs, gotwasm);
 		return;
 	}
-	let wasmmod = await fsapi.getMod("sys.wasm");
+	let wasmmod = await capi.getMod("util.wasm");
+//log(wasmmod);
 	if (!wasmmod) return poperr("No wasm module!");
-	let base_path = '/code/wasms/games/'+wasm+'.wasm';
-	wasmmod.WASM({wasmBinary:await (await fetch('/root'+base_path)).arrayBuffer()}, wasm, modret=>{
+//	let base_path = '/code/wasms/games/'+wasm+'.wasm';
+//log(base_path);
+//let rv = await fetch('/mods/games/binjgb.wasm');
+//log(rv);
+	wasmmod.WASM({wasmBinary:await (await fetch('/mods/games/binjgb.wasm')).arrayBuffer()}, wasm, modret=>{
+//log(modret);
 		if (!modret) return poperr("No module!!");
 		wasm_mod = modret;
 		init_js(jsmod, bytes, wasm_mod, namearg);

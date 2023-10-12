@@ -10,9 +10,9 @@ const NS = window[__OS_NS__];
 //About«
 const ABOUT_STR=`
     
-Linux on the Web is <i>the</i> next-generation platform for the rapid
+<i>Linux on the Web</i> is a next-generation platform for the rapid
 prototyping, development and distribution of web-based applications, and is a
-good choice for scientists and hobbyists.
+good choice for hobbyists and scientists.
 
 `;
 //»
@@ -117,7 +117,8 @@ const EXT_TO_APP_MAP={//«
 	ogg:3,
 	mp3:3,
 	html:4,
-	nes: 5
+	nes: 5,
+	gb: 5
 //	ncft:5,
 //	glb: 6,
 //	fbx: 6

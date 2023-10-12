@@ -1,7 +1,0 @@
-To change vim's default syntax highlighting, you must edit 
-/usr/share/vim/vimXX/syntax/syncolor.vim , and then mess around
-with the lines that start with "SynColor <Type>".
-
-You can match up the exact keyword/string types from the file:
-/usr/share/vim/vim82/syntax/javascript.vim.
-

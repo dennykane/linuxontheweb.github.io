@@ -5294,11 +5294,17 @@ const make_folder=()=>{
 
 const reload_desk_icons_cb = async () => {//«
 	CG.on();
+//	let nodes = Array.from(desk.childNodes);
+//	let arr = nodes.filter(n => n.className === "icon");
+//	while (arr.length) arr.pop()._del();
+	Desk.clear_desk_icons();
+	await reloadIcons();
+	CG.off();
+};
+this.clear_desk_icons = ()=>{
 	let nodes = Array.from(desk.childNodes);
 	let arr = nodes.filter(n => n.className === "icon");
 	while (arr.length) arr.pop()._del();
-	await reloadIcons();
-	CG.off();
 };
 //»
 const reload_desk_icons = (arr) => {//«
@@ -7881,6 +7887,7 @@ const get_desk_context=()=>{//«
 	}
 	return menu;
 };//»
+/*
 const delete_all_blobs=async()=>{//«
 	if (!globals.is_local) {
 		popup("Not deleting blob storage");
@@ -7888,9 +7895,10 @@ const delete_all_blobs=async()=>{//«
 	}
 	let ret = await popyesno(`Delete ALL BLOBS IN STORAGE`,{reverse: true});
 	if (!ret) return;
-	await fsapi.clearBlobs();
+	await fsapi.clearStorage();
 	popok("Blobs cleared");
 };//»
+*/
 const make_read_only = ()=>{//«
 	let d = mkdv();
 	d._z=-1;

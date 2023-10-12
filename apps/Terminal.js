@@ -38,6 +38,7 @@ const{strnum, isarr, isstr, isnum, isobj, make, KC, kc, log, jlog, cwarn, cerr}=
 
 const{NS, FOLDER_APP,FS_TYPE,fs, isMobile}=globals;
 const fsapi = fs.api;
+const widgets = NS.api.widgets;
 const {normPath}=capi;
 const {pathToNode}=fsapi;
 
@@ -67,7 +68,6 @@ const term_out=(term, arg)=>{//«
 	term.response({SUCC: arg, NOEND: true});
 };//»
 const write_to_redir=async(term, str, redir)=>{//«
-log(123);
 	const terr=(arg)=>{term_error(term, arg);return TERM_ERR;};
 	const tout=(arg)=>{term_out(term, arg);return TERM_OK;};
 
@@ -108,7 +108,6 @@ const validate_out_path = async(outpath)=>{//«
 	return true;
 
 };//»
-
 //»
 
 //Commands«
@@ -346,14 +345,15 @@ const com_ls = async (term, args) => {//«
 	if (!args.length) args.push("./");
 	while (args.length) {
 		let path = args.shift();
-//		if (!path) path = "";
 		let regpath = normPath(path, term.cur_dir);
 		let node = await fsapi.pathToNode(regpath);
 		if (!node) return terr(`${regpath}: No such file or directory`);
 		if (node.appName !== FOLDER_APP) {
-			let size = node.size || "?";
-			tout(`${node.name} ${size}`);
-	//		return TERM_OK;
+			let file = await node._file;
+			let sz;
+			if (file) sz = file.size;
+			if (!Number.isFinite(sz)) sz = "?";
+			tout(`${node.name} ${sz}`);
 			continue;
 		}
 		if (!node.done) await fsapi.popDir(node);
@@ -917,6 +917,15 @@ return terr(e.message);
 //log(node);
 	return TERM_OK;
 };//»
+const com_clearstorage = async(term, args)=>{//«
+	const terr=(arg)=>{term_error(term, arg);return TERM_ERR;};
+	if (globals.read_only) return terr("Read only");
+    let ret = await widgets.popyesno(`Clear EVERYTHING in storage?`,{reverse: true});
+	if (!ret) return terr("Not clearing");
+    await fsapi.clearStorage();
+	term.Desk.clear_desk_icons();
+	return terr("Please resfresh the page");
+};//»
 const com_appicon=(term, args, redir)=>{//«
 	const terr=(arg)=>{term_error(term, arg);return TERM_ERR;};
 	let app = args.shift();
@@ -964,6 +973,7 @@ less:com_less,
 vim:com_vim,
 mount: com_mount,
 unmount: com_unmount,
+_clearstorage: com_clearstorage
 //env: NOOP
 };//»
 
@@ -2624,8 +2634,12 @@ const get_command_arr=async (dir, pattern, cb)=>{//«
 	let match_arr = [];
 	let re = new RegExp("^" + pattern);
 	for (let i=0; i < arr.length; i++) {
-		if (pattern == "") match_arr.push([arr[i], "Command"]);
-		else if (re.test(arr[i])) match_arr.push([arr[i], "Command"]);
+		let com = arr[i];
+		if (pattern == "") {
+			if (com.match(/^_/)) continue
+			match_arr.push([com, "Command"]);
+		}
+		else if (re.test(com)) match_arr.push([arr[i], "Command"]);
 	}
 	cb(match_arr);
 };//»
@@ -4247,7 +4261,11 @@ cerr(`the arr argument has length ${arr.length} (expected <= ${num_stat_lines})`
 	stat_lines = arr;
 	render();
 };
+this.compare_last_line=(str)=>{
+log(lines);
+cwarn("compare", str);
 
+};
 //»
 this.wrap_line = wrap_line;
 this.dopaste=dopaste;
