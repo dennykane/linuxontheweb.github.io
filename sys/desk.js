@@ -229,6 +229,7 @@ const TASK_BAR_COL_RGB="8,8,24";
 //let DEF_DESK_GRADIENT = "linear-gradient(135deg,#000 0%,#003 50%,#006 75%,#000077 87%,#33c 100%)";
 //let DEF_DESK_GRADIENT = DESK_GRADIENT;
 const TASKBAR_BG_COL=`rgb(${TASK_BAR_COL_RGB})`;
+const TASKBAR_BOR_FOX=`2px outset rgba(0,0,0,0.35)`;
 const TASKBAR_BOR=`2px outset rgba(0,0,0,0.75)`;
 const MIN_WIN_LIN_GRAD  =`linear-gradient(90deg, rgba(${TASK_BAR_COL_RGB},0) 90%, rgba(${TASK_BAR_COL_RGB},1) 97%)`;
 let OVERLAYOP = "0.5";
@@ -5590,7 +5591,10 @@ bar._w="100%";
 bar._op=0;
 bar._z=MIN_WIN_Z-1;
 bar._bgcol=TASKBAR_BG_COL;
-bar._bor=TASKBAR_BOR;
+
+if (globals.isFox) bar._bor=TASKBAR_BOR_FOX;
+else bar._bor=TASKBAR_BOR;
+
 bar.id="taskbar";
 //»
 let mwb = mkdv();//«
@@ -7601,8 +7605,6 @@ or when there is an active context menu.
 	if (kstr=="r_CAS") return reload_desk_icons_cb();
 	if (kstr=="k_CAS") {
 		return (debug_keydown = !debug_keydown);
-//		toggle_key_viewer();
-		return;
 	}
 	if (kstr == "d_CAS") {
 		if (cwin) {

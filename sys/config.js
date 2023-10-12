@@ -176,6 +176,7 @@ export const globals = {//«
 	qObj,
 	NS,
 	isMobile,
+	isFox: navigator.userAgent.match(/Firefox/),
 	FS_PREF,
 	FS_TYPE,
 
