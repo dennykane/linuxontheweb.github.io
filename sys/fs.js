@@ -663,17 +663,9 @@ return;
 	if (!await db.removeNode(id, parid)) return bad("FRYNBSJ");
 	let blobId = fobj.blobId;
 	if (blobId) {
-		let fent = await get_blob_entry(`${blobId}`, true);
-		if (!fent){
-cwarn(`COULD NOT GET ENTRY: ${blobId}`);
-		}
-		else{
-//DJUTYIO
-			if (fent.remove) await fent.remove();
-			else{
-cwarn("No fent.remove!");
-			}
-		}
+		if (!BLOB_DIR) BLOB_DIR = await get_blob_dir();
+		if (!BLOB_DIR) return Y();
+		await BLOB_DIR.removeEntry(blobId);
 	}
 
 	return Y([true]);
@@ -682,19 +674,8 @@ cwarn("No fent.remove!");
 };//»
 const clearStorage =()=>{//«
 	return new Promise(async(Y,N)=>{
-			if (!BLOB_DIR) BLOB_DIR = await get_blob_dir();
-			if (!BLOB_DIR) return;
-//SLKIUNL
-			if (BLOB_DIR.remove) {
-				await BLOB_DIR.remove({ recursive: true });
-			}
-			else{
-
-cwarn("No BLOB_DIR.remove!");
-
-			}		
-
-//		await get_blob_dir();
+		let opfs = await navigator.storage.getDirectory();
+		await opfs.removeEntry("blobs", { recursive: true });
 		let rv = await db.dropDatabase();
 		localStorage.clear();
 		Y(true);
