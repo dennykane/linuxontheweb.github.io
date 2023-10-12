@@ -266,7 +266,7 @@ const STEP_MODE_DESK_OP=0.5;
 //"n items->" label keeps showing.  If you are moving the mouse very fast, the
 //pointer can go over the label and trigger an event to make it disappear and
 //think that you've "dropped" your payload.
-let CDL_OFFSET=5;
+let CDL_OFFSET=10;
 
 let ICON_OP_MS=250;
 
