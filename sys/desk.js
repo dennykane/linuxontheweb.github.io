@@ -1098,7 +1098,7 @@ wrapper.iconElem=d;
 let label = d.childNodes[1];
 label.iconElem = d;
 label.title = name;
-wrapper.childNodes[0].title = app;
+//wrapper.childNodes[0].title = app;
 
 //»
 
