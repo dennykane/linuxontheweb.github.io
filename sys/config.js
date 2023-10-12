@@ -3,7 +3,7 @@
 
 //Window Namespace«
 window.__OS_NS__="LOTW";
-window[__OS_NS__]={apps:{}, mods:{}, api:{}};
+window[__OS_NS__]={apps:{}, mods:{}, api:{}, coms:{}};
 const NS = window[__OS_NS__];
 //»
 
@@ -106,7 +106,6 @@ const EXT_TO_APP_MAP={//«
     txt:1,
     js:1,
     json:1,
-	dsp:1,
 	jpg:2,
 	png:2,
 	gif:2,
@@ -125,6 +124,7 @@ const EXT_TO_APP_MAP={//«
 };//»
 for (let k in EXT_TO_APP_MAP) ALL_EXTENSIONS.push(k);
 const ALL_EXTENSIONS_RE= new RegExp("^(.+)\\.(" + ALL_EXTENSIONS.join("|") + ")$");
+
 /* Interesting Icons
 Large kitchen knife 1f52a
 */

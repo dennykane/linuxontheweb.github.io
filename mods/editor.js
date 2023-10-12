@@ -1,4 +1,6 @@
 
+//Commented out check_memory @POLKEYUTO: NOT WORKING IN FF!!!!
+
 /*Call do_syntax_timer() BEFORE all of the cursor/editing functions since this//«
 will set a syntax_timer global variable, which causes all synchronous renders
 to not render. These synchronous renders can cause a temporary blink of the 
@@ -3952,7 +3954,8 @@ states=states.slice(0, state_iter+1);
 	}
 	states.push(out);
 	state_iter=states.length-1;
-	check_memory();
+//POLKEYUTO
+//	check_memory();
 //	last_action = null;
 };//»
 const do_history_arrow=sym=>{//«
