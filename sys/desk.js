@@ -2582,7 +2582,7 @@ const make_folder_icon = async(winarg) => {//«
 const make_new_icon = async(winarg, type) => {//«
 	if (type == FOLDER_APP) make_folder_icon(winarg);
 	else if (type == "Text") {
-		let val = await WDGAPI.popinarea("Paste text");
+		let val = await WDGAPI.popinarea("Input text");
 		if (!val) return;
 		if (CG._dis != "none") return;
 		CG.on();

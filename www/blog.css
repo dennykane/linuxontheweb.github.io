@@ -1,0 +1,18 @@
+body{
+	background-color: #000;
+	color: #bbb;
+}
+h2{
+	margin-left: 3%;
+}
+p{
+	margin-left: 6%;
+	max-width: 85ch;
+	font-size: 21px;
+}
+a:link{
+	color: #77f;
+}
+a:visited{
+	color: #77f;
+}
