@@ -1,16 +1,23 @@
 /*
 
+This is really only considered quirks mode because we set css values that
+expect the string "100px" with just the number, 100. So the browser has to
+assume that we mean pixels.
+
 It looks like all icn.iconElem._del should just be icn.del()!!!
 
 Got rid of all CDA (cur drag app) use cases, which just comes from a dumb
 experimental app (dev.Launcher), which is idiotically trying to be a MacOS
-Dockbar clone.
+Dockbar clone. Beyond the mere brainteaser of trying to get a smooth
+magnification effect, I don't see much point of literally supporting a 
+MacOS-like Dockbar.
 
-@REOPIKLU: Real bad (in this day and age) to have this as ._del() rather than the icon's method of .del()!!!
-Do we need to do a finegrained check of all "._del()" invocations? 
+@REOPIKLU: Real bad (in this day and age) to have this as ._del() rather than
+the icon's method of .del()!!!  Do we need to do a finegrained check of all
+"._del()" invocations? 
 
 @EIUKLMY: October 12-ish, 2023: Just added Math.round here. Apparently placeInIconSlot, 
-doesn't work well with numbers like 239.999567...
+doesn't work well with numbers like 239.99999567...
 
 */
 /*«
@@ -189,7 +196,8 @@ let desk_menu;
 const api={};
 Desk.api=api;
 //let win_overflow={t:0,b:1,l:1,r:1};
-let win_overflow={top:0,bottom:0,left:0,right:0};
+//let win_overflow={top:0,bottom:0,left:0,right:0};
+let win_overflow={top:0,bottom:1,left:1,right:1};
 let keysym_map, keysym_funcs;
 let std_keysym_map={
 	"f_A":{"n":"fullscreen_window"},
@@ -2228,7 +2236,10 @@ const icon_array_off = (which) => {//«
 	let icn = ICONS[0];
 	for (let i = 0; i < ICONS.length; i++) ICONS[i].off();
 	ICONS = [];
-	if (icn && icn.parWin!==desk) icn.parWin.app.update();
+	if (icn && icn.parWin!==desk) {
+		icn.parWin.app.update();
+		icn.parWin.app.stat(`0 selected`);
+	}
 }//»
 const select_icons_in_drag_box_desk = (e) => {//«
 	if (!DDIE) return;
@@ -3286,7 +3297,7 @@ Object.defineProperty(this, "title", {//«
 			if (!win_overflow.left) win._x= 0;
 			else if (win._x + w < 0) win._x += 2 * win_move_inc;
 		} else if (win._x + w > winw()) {
-			if (!win_overflow._r) win._x= winw() - w;
+			if (!win_overflow.right) win._x= winw() - w;
 			else if (win._x > winw()) win._x -= 2 * win_move_inc;
 		}
 		if (win._y < miny) {
@@ -6582,7 +6593,7 @@ const mkpopup_tdiv = (str, opts={}) => {//«
 	else tdiv._fs = 18;
 //	if (!(opts.NOBOLD||if_systerm)) tdiv._fw="bold";
 	
-	tdiv._tcol="#ccc";
+	tdiv._tcol="#eee";
 	tdiv._pos='absolute';
 	let usex = 109;
 	if (if_big_img) usex += 64;
@@ -7371,15 +7382,16 @@ if (keydiv){
 »*/
 
 //Prevent the default behaviour of these shortcuts//«
-//	const notext_prevdef={
-//		"BACK_": 1,
-//		"a_C":1
-//	};
+	const notext_prevdef={
+		BACK_: 1,
+		a_C:1
+	};
 	if (ALWAYS_PREVENT.includes(kstr)) e.preventDefault();
 	if (act && act_type && act_type.match(/^(text|password|number)/)) text_inactive = false; 
-//	if (text_inactive && notext_prevdef[kstr]) {
-//		e.preventDefault();
-//	}
+//An active textarea is not considered as "text"
+	if (text_inactive && notext_prevdef[kstr]) {
+		e.preventDefault();
+	}
 
 //»
 

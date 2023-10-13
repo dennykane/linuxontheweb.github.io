@@ -171,7 +171,7 @@ const isMobile = (()=>{//«
 	});
 })();//»
 
-//Prevent the default behaviors of these keydown events«
+//Prevent default«
 /*«
 LEFT_A Navigate back
 RIGHT_A Navigate forward
@@ -186,7 +186,10 @@ e_A Open chrome menu (3 dots)
 »*/
 
 const ALWAYS_PREVENT = [
-	"LEFT_A"
+	"LEFT_A",
+	"e_C",
+	"s_C",
+	"f_C",
 ];
 
 //»
