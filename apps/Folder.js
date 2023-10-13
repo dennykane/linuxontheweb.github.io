@@ -152,9 +152,11 @@ const load_dir=()=>{//«
 
 let typ = dir.type;
 kids = dir.kids;
-let keys = kids._keys;
+
+let keys = Object.keys(kids);
 keys.splice(keys.indexOf("."),1);
 keys.splice(keys.indexOf(".."),1);
+
 if (picker_mode){
 	let arr = [];
 	for (let k of keys){
@@ -191,7 +193,6 @@ observer = new IntersectionObserver((ents)=>{
 }, options);
 
 for (let kid of icondv.children) {
-
 	kid.show = ()=>{//«
 		let got = kids[kid.dataset.name];
 /*If this 'got' should be "owned" by a FileSaver that is writing to it, then we//«

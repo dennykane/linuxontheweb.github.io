@@ -1,4 +1,15 @@
-/*@EIUKLMY: October 12-ish, 2023: Just added Math.round here. Apparently placeInIconSlot, 
+/*
+
+It looks like all icn.iconElem._del should just be icn.del()!!!
+
+Got rid of all CDA (cur drag app) use cases, which just comes from a dumb
+experimental app (dev.Launcher), which is idiotically trying to be a MacOS
+Dockbar clone.
+
+@REOPIKLU: Real bad (in this day and age) to have this as ._del() rather than the icon's method of .del()!!!
+Do we need to do a finegrained check of all "._del()" invocations? 
+
+@EIUKLMY: October 12-ish, 2023: Just added Math.round here. Apparently placeInIconSlot, 
 doesn't work well with numbers like 239.999567...
 
 */
@@ -364,6 +375,8 @@ let tilde_press = 0;
 
 //»
 //Protos/Props«
+
+/*
 let CDA = null;
 Object.defineProperty(this,"CDA",{
 	get:()=>{
@@ -379,6 +392,7 @@ Object.defineProperty(this,"CDA",{
 	}
 
 });
+*/
 Object.defineProperty(Object.prototype,'_keys',{get:function(){return Object.keys(this);},set:function(){}});
 Object.defineProperty(Object.prototype,'_vals',{get:function(){let arr=[];let keys=Object.keys(this);for(let k of keys){arr.push(this[k]);}return arr;},set:function(){}});
 Object.defineProperty(this,"CWIN",{get:()=>CWIN});
@@ -723,10 +737,10 @@ return;
 				CDL._y=e.clientY+CDL_OFFSET-winy();
 			}
 		}//»
-		else if (CDA){
-let r = CDA.getBoundingClientRect();
-			CDA._loc(e.clientX+(CDA._offx), e.clientY-(r.height+CDA._offy));
-		}
+//		else if (CDA){
+//			let r = CDA.getBoundingClientRect();
+//			CDA._loc(e.clientX+(CDA._offx), e.clientY-(r.height+CDA._offy));
+//		}
 		else if (CRW) handle_resize_event(e);
 		else if (CDW) {//«
 			let x = e.clientX-DDX;
@@ -908,32 +922,21 @@ drag_timeout = setTimeout(()=>{
 			delete CRW.starty;
 			update_and_clear_resize_wins();
 		}
+/*
 		else if (CDA){
-//log("APP",CDA.app);
-//CDA._z=ICON_Z;
-//CDA._pos="absolute";
-//cwarn("DROP CDA");
-//let appname = CSA
-
-//toggle_show_windows();
-//CG.on();
-//make_new_text_file(desk, `{"app":"${CDA.app}"}`, "txt", {name: CDA.app.split(".").pop()});
-CDA._del();
-let name = CDA.app.split(".").pop();
-let path = `${globals.desk_path}/${name}.app`;
-let gotnode = await pathToNode(path);
-//log(gotnode);
-if (!gotnode){
-//log("WRITE TO",path);
-let node = await fsapi.writeFile(path,`{"app":"${CDA.app}"}`, {noMakeIcon: true});
-if (node){
-make_icon(name, desk, {ext: "app", node , pos:{X:e.clientX, Y: e.clientY}});
-}
-
-}
-
-CDA=null;
+			CDA._del();
+			let name = CDA.app.split(".").pop();
+			let path = `${globals.desk_path}/${name}.app`;
+			let gotnode = await pathToNode(path);
+			if (!gotnode){
+				let node = await fsapi.writeFile(path,`{"app":"${CDA.app}"}`, {noMakeIcon: true});
+				if (node){
+					make_icon(name, desk, {ext: "app", node , pos:{X:e.clientX, Y: e.clientY}});
+				}
+			}
+			CDA=null;
 		}
+*/
 	};//»
 	desk.onmousedown = e => {//«
 		e.preventDefault();
@@ -1574,7 +1577,9 @@ const reset_display=()=>{//«
 		let no_move_icon_wins = [];
 		if (origwin !== desk) {
 			for (let icn of NO_MOVE_ICONS) {
-				icn._del();
+//REOPIKLU
+//icn._del();
+				icn.del();
 			}
 			return;
 		}
@@ -1804,7 +1809,8 @@ for (let icn of ICONS) {//«
 		desk._add(icn.iconElem);
 		proms.push(move_icon(icn, loc.X+desk.scrollLeft, loc.Y+desk.scrollTop, {scale:0.25, fade:true, 
 			cb:()=>{
-				icn.iconElem._del();
+//				icn.iconElem._del();
+				icn.del();
 //TEIOPLKJHY
 				if (icn.win && icn.win.icon){
 					icn.win.icon = undefined;
@@ -1831,7 +1837,8 @@ for (let icn of ICONS) {//«
 				let nm = ic.name;
 				if (ext) nm += `.${ext}`;
 				if (nm==name){
-					icn.iconElem._del();
+//					icn.iconElem._del();
+					icn.del();
 					return;
 				}
 			}
@@ -2332,7 +2339,7 @@ const save_icon_editing = async() => {//«
 
 	const abort=async mess=>{//«
 		if (!mess) mess="There was an error";
-		CEDICN._del();
+		CEDICN.del();
 		if (CEDICN._editcb) {
 			await WDGAPI.poperr(mess);
 			CEDICN._editcb();
@@ -2436,6 +2443,7 @@ cerr("Unsupported type:" + rtype);
 	doend();
 }//»
 const init_icon_editing = icn => {//«
+
 	CEDICN = icn;
 	if (icn.parentNode===desk && windows_showing) toggle_show_windows();
 	CG.on();
@@ -2908,17 +2916,13 @@ const Window = function(arg){//«
 		if (is_folder) icon_array_off(3);
 		this.killed = true;
 		this.app.killed = true;
-//		this._del();
-//log(win._del);
 		win._del();
 		let icn = this.icon;
 		let node = this.node;
 		if (icn) {
 			if (!node) node = icn.node;
-//			if (icn.node) delete icn.node.unlockFile();
 			icn.win = null;
 		}
-//		else if (this.node) this.node.unlockFile();
 		if (node && node.unlockFile) node.unlockFile();
 		top_win_on();
 	};//»
@@ -5309,9 +5313,6 @@ const make_folder=()=>{//«
 
 const reload_desk_icons_cb = async () => {//«
 	CG.on();
-//	let nodes = Array.from(desk.childNodes);
-//	let arr = nodes.filter(n => n.className === "icon");
-//	while (arr.length) arr.pop()._del();
 	Desk.clear_desk_icons();
 	await reloadIcons();
 	CG.off();
@@ -5330,7 +5331,7 @@ const reload_desk_icons = (arr) => {//«
 	};
 	if (desk.icons) {
 		for (let icn of desk.icons) {
-			if (icn) icn.iconElem._del();
+			if (icn) icn.del();
 		}
 		desk.icons = [];
 	}
@@ -7409,7 +7410,7 @@ or when there is an active context menu.
 			}
 			else {
 				if (CEDICN.parWin._save_escape_cb) CEDICN.parWin._save_escape_cb();
-				CEDICN._del();
+				CEDICN.del();
 				CEDICN = null;
 			}
 			CG.off();

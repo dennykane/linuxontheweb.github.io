@@ -347,6 +347,7 @@ let rootId;
 
 const root={name:"/",appName:FOLDER_APP,kids:{},treeroot:true,type:"root",sys:true,path:"/",fullpath:"/",done:true};
 root.kids['..'] = root;
+root.kids['.'] = root;
 root.root = root;
 this.root = root;
 globals.root = root;
