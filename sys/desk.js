@@ -1,5 +1,12 @@
 /*
 
+NEED TO BE ON THE LOOK OUT FOR EVERY CSS VALUE THAT NEEDS TO BE IN
+"px" RATHER THAN BEING A NUMBER!!!!
+
+As long as everything is set via the underscore method, this should not
+be a problem. Whoever independently sets elem.style.width=10 is going
+to have a problem now!
+
 This is really only considered quirks mode because we set css values that
 expect the string "100px" with just the number, 100. So the browser has to
 assume that we mean pixels.
@@ -449,9 +456,11 @@ const doParseNumber = (thisarg, opts, if_float) => {//«
 	if (val > MAX) return NaN;
 	return val;
 };//»
+
+const CSS_PX_NUMBER_START_POS = 26;
 const set_style_props = (which, arr) => {//«
 	for (var i = 0; i < arr.length; i += 2) {
-		(function(k, v) {
+		(function(k, v, iter) {
 			Object.defineProperty(which.prototype, k, {
 				get: function() {
 					var val = this.style[v];
@@ -461,19 +470,38 @@ const set_style_props = (which, arr) => {//«
 					return val;
 				},
 				set: function(arg) {
-					this.style[v] = arg;
+
+if (Number.isFinite(arg) && iter >= CSS_PX_NUMBER_START_POS){
+	this.style[v]=`${arg}px`;
+//log(v, this.style[v]);
+}
+					else this.style[v] = arg;
 				}
 			});
-		})(arr[i], arr[i + 1]);
+		})(arr[i], arr[i + 1], i);
 	}
 }//»
 set_style_props(HTMLElement,//«
 [
 
-"_fs","fontSize",
+// !! If anything is ever inserted up to the _END_, the CSS_PX_NUMBER_START_POS **MUST** be updated !!
+
 "_fw","fontWeight",
 "_tcol","color",
 "_bgcol","backgroundColor",
+"_bor", "border",
+"_pos","position",
+"_dis","display",
+"_op", "opacity",
+"_ta", "textAlign",
+"_ff", "fontFamily",
+"_over", "overflow",
+"_overx", "overflowX",
+"_overy", "overflowY",
+"_z", "zIndex",
+//_END_
+
+"_fs","fontSize",// CSS_PX_NUMBER_START_POS = 13*2 = 26
 "_pad", "padding",
 "_padt", "paddingTop",
 "_padb", "paddingBottom",
@@ -484,22 +512,13 @@ set_style_props(HTMLElement,//«
 "_marb", "marginBottom",
 "_marl", "marginLeft",
 "_marr", "marginRight",
-"_bor", "border",
-"_pos","position",
-"_dis","display",
-"_op", "opacity",
-"_ta", "textAlign",
-"_ff", "fontFamily",
-"_over", "overflow",
-"_overx", "overflowX",
-"_overy", "overflowY",
 "_x","left", 
 "_y","top",
 "_r","right",
 "_b","bottom",
-"_z", "zIndex",
 "_w","width",
 "_h", "height"
+
 ]);//»
 set_style_props(SVGElement,//«
 [
@@ -511,7 +530,12 @@ Blob.prototype.toString = function() {return '[Blob ('+this.size+', "'+this.type
 
 let _;
 _ = HTMLElement.prototype;
-_._loc=function(x,y){if(x !=0 && !x)return{X:this.style.left,Y:this.style.top};else{this.style.left=x;this.style.top=y;}}
+_._loc=function(x,y){
+	if (Number.isFinite(x)) x = `${x}px`;
+	if (Number.isFinite(y)) y = `${y}px`;
+	this.style.left=x;
+	this.style.top=y;
+}
 _._del = function(){if (this.parentNode) {this.parentNode.removeChild(this);}}
 _._add=function(...args){for(let kid of args)this.appendChild(kid);}
 _._gbcr=function(){return this.getBoundingClientRect()}
@@ -1465,10 +1489,10 @@ icn.add_link = if_broken => {//«
 	link_div._add(img);
 	link_div._pos= "absolute";
 	link_div._op=0.66;
-	link_div._r=0;
-	link_div._b=0;
+	link_div._r="0px";
+	link_div._b="0px";
 	img.src = 'data:image/svg+xml;base64,' + btoa(link_str);
-	img.style.maxWidth = ICON_DIM;
+	img.style.maxWidth = `${ICON_DIM}px`;
 };//»
 
 //»
@@ -5112,9 +5136,9 @@ this.right=(if_ctrl)=>{//«
 		this.setpos(_x,_y);
 		return;
 	}
+//log(_x, _y);
 	let icn = this.geticon();
 	let next;
-//log("ICN",icn);
 	if (!icn) {
 		let num = this.icon_div.childNodes.length;
 		if (!num) return;
@@ -5124,9 +5148,11 @@ this.right=(if_ctrl)=>{//«
 	if (!next) return;
 	let xpos = next.offsetLeft;
 	let ypos = next.offsetTop;
+//log(xpos, ypos);
 //ZOPTNJYW
 	this.main.lasticon = next.icon;
 	curElem._loc(xpos+CUR_FOLDER_XOFF,ypos+CUR_FOLDER_YOFF);
+//log(curElem);
 	if (CWIN) {
 		if (!(next.icon&&next.icon.fullname)){
 			setTimeout(()=>{

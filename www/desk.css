@@ -53,14 +53,14 @@ a:visited{
 	text-align:center;
 }
 .iconi{
-	min-width:48;
+	min-width:48px;
 	text-align:center;
-	font-size:38;
+	font-size:38px;
 	position:relative;
 }
 .iconw{
 	text-align:center;
-	min-width:48;
+	min-width:48px;
 	border:1px dotted #aaa;
 	display:inline-block;
 	position:relative
@@ -71,7 +71,7 @@ a:visited{
 	text-align:center;
 	overflow-wrap:break-word;
 	width:94px;
-	font-size:15;
+	font-size:15px;
 	background-color:#000;
 	padding:1px;
 }
