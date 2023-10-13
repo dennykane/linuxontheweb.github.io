@@ -128,9 +128,24 @@ let observer;
 //»
 
 //Funcs«
-
-
-const stat=(s)=>{statbar.innerHTML=s;};
+let num_div = mkdv();
+let cur_div = mkdv();
+let mess_div = mkdv();
+statbar._w = "100%";
+statbar._dis="flex";
+statbar.style.justifyContent="space-between";
+//statbar.style.justifyContent="center";
+statbar._add(mess_div);
+statbar._add(cur_div);
+statbar._add(num_div);
+//log(statbar);
+mess_div.innerHTML="\xa0[<b>b</b>]ack [<b>f</b>]orward";
+const statnum=(s)=>{
+	num_div.innerHTML=`${s}\xa0`;
+};
+const statcur=(s)=>{
+	cur_div.innerHTML=s;
+};
 const NOOP=()=>{};
 
 const load_dir=()=>{//«
@@ -205,9 +220,9 @@ cwarn("Not found in kids: "+ kid.dataset.name);
 
 }//»
 const stat_num=()=>{//«
-	if (!num_entries) stat("Empty");
-	else if (num_entries==1) stat("1 entry");
-	else stat(`${num_entries} entries`);
+	if (!num_entries) statnum("Empty");
+	else if (num_entries==1) statnum("1 entry");
+	else statnum(`${num_entries} entries`);
 };//»
 
 //»
@@ -295,7 +310,7 @@ else cwarn("Opening in 'app mode'");
 //Show a loading message in the Main window of the Folder app: //«
 //In apps/sys/Folder.js->init
     if (!dir.done){
-        stat("Getting entries...");
+        statnum("Getting entries...");
         let cb=(ents)=>{
             num_entries+=ents.length;
             stat_num();
@@ -357,7 +372,7 @@ const reload = async(newpath)=>{//«
 	Main.scrollTop=0;
 	icondv.innerHTML="";
 	await init(true);
-	stat(`${dir.kids._keys.length-2} entries`);
+	statnum(`${dir.kids._keys.length-2} entries`);
 	if (topwin.cursor) topwin.cursor.set();
 };//»
 this.reload=reload;
@@ -492,10 +507,10 @@ init();
 //this.onload=()=>{init();};
 this.update=()=>{
 //log("UPDATE");
-	stat(`${dir.kids._keys.length-2} entries`);
+	statnum(`${dir.kids._keys.length-2} entries`);
 };
 this.add_icon=(icn)=>{Main.scrollTop=0;};
-this.stat=stat;
+this.stat=statcur;
 
 this.get_context=()=>{//«
 	let choices = [

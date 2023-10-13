@@ -85,7 +85,8 @@ const{
 
 	ABOUT_STR,
 	BACKGROUND_IMAGE_URL,
-	DESK_GRADIENT
+	DESK_GRADIENT,
+	ALWAYS_PREVENT
 }=globals;
 
 //»
@@ -192,7 +193,8 @@ let std_keysym_map={
 	"n_A":{"n":"minimize_window"},
 //	"f_CAS":{"n":"toggle_fullscreen"},
 	"b_A":{"n":"toggle_taskbar"},
-	t_A:{n:"open_terminal"}
+	t_A:{n:"open_terminal"},
+	e_A:{n:"open_explorer"}
 };
 
 //»
@@ -521,15 +523,19 @@ _.del = function() {if (this.parentNode) this.parentNode.removeChild(this);}
 
 //»
 //Main Context Menu«
+const open_home_folder=()=>{open_file_by_path(globals.home_path);};
 const DESK_CONTEXT_MENU=[
+
 	"\u{1f381}\xa0\xa0New",[
 		"Folder",
 		()=>{make_new_icon(desk, FOLDER_APP)},
 		"Text File",
 		()=>{make_new_icon(desk, "Text")}
 	],
-	"\u{1f5b3}\u{2009}\xa0Terminal",()=>{open_terminal()},
+	"\u{1f4c1}\xa0\xa0Explorer\xa0(Alt+e)",open_home_folder,
+	"\u{1f5b3}\u{2009}\xa0Terminal\xa0(Alt+t)",()=>{open_terminal()},
 	"\u{1f4ca}\xa0\xa0About",()=>{make_popup({WIDE:true,STR: ABOUT_STR, TIT: "About"});},
+
 ];
 //»
 
@@ -1304,7 +1310,8 @@ this.rename = namearg => {//«
 	if (icn.ext.toLowerCase() != oldext.toLowerCase()) {
 		delete icn.wrapper;
 		icn.imgdiv.innerHTML = "";
-		let newapp = ext_to_app(icn.ext.toLowerCase());
+//		let newapp = ext_to_app(icn.ext.toLowerCase());
+		let newapp = capi.extToApp(icn.ext.toLowerCase());
 		icn.appName = newapp;
 		set_app_img(icn.imgdiv, newapp);
 	}
@@ -3175,6 +3182,7 @@ Object.defineProperty(this, "title", {//«
 				CUR.off();
 			}
 		}
+		CWIN = this;
 		this.winElem._dis= "block";
 		if (is_folder && !this.is_minimized) {
 			this.main.focus();
@@ -3188,7 +3196,6 @@ Object.defineProperty(this, "title", {//«
 		if (if_no_zup){}
 		else if (this.winElem._z && this.winElem._z < 10000000) this.up();
 
-		CWIN = this;
 		
 		this.zhold = null;
 		if (!this.no_shadow) this.winElem.style.boxShadow = window_boxshadow;
@@ -4878,7 +4885,8 @@ const open_file_by_path = async(patharg, cb, opt={}) => {//«
 	if (ext) {
 		fake.name = arr[0];
 		fake.ext = ext;
-		fake.appName = ext_to_app(ext);
+//		fake.appName = ext_to_app(ext);
+		fake.appName = capi.extToApp(ext);
 	} 
 	else fake.appName = DEF_BIN_OPENER;
 	let rtype = node.type;
@@ -5034,11 +5042,16 @@ this.set = ()=>{//«
 		let got = this.main.lasticon;
 		if (got && got.parWin == this.main.top) {
 			curElem._loc(got.iconElem.offsetLeft+2,got.iconElem.offsetTop+2);
+			CWIN.app.stat(got.fullname);
 		}
 		else {
 			this.main.scrollTop=0;
 			curElem._x=CUR_FOLDER_XOFF;
 			curElem._y=CUR_FOLDER_YOFF;
+			setTimeout(()=>{
+				let got = this.geticon();
+				if (got) CWIN.app.stat(got.fullname);
+			},50);
 		}
 	}
 };//»
@@ -5285,14 +5298,14 @@ const CUR = new Cursor();
 //»
 //Folders«
 
-const make_folder=()=>{
+const make_folder=()=>{//«
 	if (!CWIN){
 		make_new_icon(desk, FOLDER_APP);
 	}
 	else if (CWIN.appName == FOLDER_APP) {
 		make_new_icon(CWIN, FOLDER_APP);
 	}
-};
+};//»
 
 const reload_desk_icons_cb = async () => {//«
 	CG.on();
@@ -7225,7 +7238,7 @@ const handle_ESC = (if_alt) => {//«
 	if (windows_showing) toggle_show_windows();
 };//»
 const dokeydown = function(e) {//«
-
+	const p = ()=>{e.preventDefault();};
 const check_input = ()=>{//«
 	if (cwin && !text_inactive) return true;
 	return false;
@@ -7354,43 +7367,18 @@ if (keydiv){
 	}
 }
 »*/
+
 //Prevent the default behaviour of these shortcuts//«
-/*
-These are the keycodes that are used by the browser to do various things that we might not give 
-a crap about in LOTW, so we stop that thing from happening here. (I mean, who needs Ctrl+p to 
-open a print dialog if you never print anything or even have a printer!)
-*/
-	const prevent = {
-//n_C:1,
-//		"l_C": 1,
-		"LEFT_A":1,
-		"RIGHT_A":1,
-		"s_CA": 1,
-		"e_C": 1,
-//		"=_C": 1,
-//		"-_C": 1,
-		"f_C": 1,
-		"s_C": 1,
-		"c_CS": 1,
-		"k_C": 1,
-//		"w_C":1,
-		"d_A":1,
-		"p_C":1,
-		"j_C":1,
-		f_A:1,
-		t_A: 1,
-		"/_": 1
-//PGUP_:1,
-//PGDN_:1
-	};
-	const notext_prevdef={
-		"BACK_": 1,
-		"a_C":1
-	};
-	if (prevent[kstr]) e.preventDefault();
-//	if (act && act != desk.area && act_type && act_type.match(/^(text|password|number)/)) text_inactive = false; /*Prevent Default Detection(To stop unwanted browser actions like unloading)*/
-	if (act && act_type && act_type.match(/^(text|password|number)/)) text_inactive = false; /*Prevent Default Detection(To stop unwanted browser actions like unloading)*/
-	if (text_inactive && notext_prevdef[kstr]) e.preventDefault();
+//	const notext_prevdef={
+//		"BACK_": 1,
+//		"a_C":1
+//	};
+	if (ALWAYS_PREVENT.includes(kstr)) e.preventDefault();
+	if (act && act_type && act_type.match(/^(text|password|number)/)) text_inactive = false; 
+//	if (text_inactive && notext_prevdef[kstr]) {
+//		e.preventDefault();
+//	}
+
 //»
 
 /*Old«
@@ -7494,7 +7482,7 @@ or when there is an active context menu.
 		return;
 	}//»
 
-//Issues with arrow keys
+//Issues with arrow keys (like moving the text carat and highlighting the text)
 //«
 	if (cwin) {
 		if (!text_inactive) {
@@ -7516,7 +7504,7 @@ or when there is an active context menu.
 		let gotfunc = keysym_funcs[nm];
 		if (!gotfunc) return poperr(`There is nothing named '${nm}' in keysym_funcs using the sym: ${kstr}`);
 		gotfunc.apply(null, args);
-		return;
+		return p();
 	}//» 
 
 //Open context menu of selected icon, desktop or current window
@@ -7757,10 +7745,7 @@ const setsyskeys=()=>{//«
 keysym_funcs = {
 focus_desktop:()=>{let w=CWIN;if(w&&(w.is_fullscreen||w.is_maxed))return;CWIN&&CWIN.off();CUR.todesk();},
 test_function:async()=>{
-//delete_all_blobs();
-let win = await api.openApp("dev.Launcher", {force: true});
-//win.main._tcol="#fff";
-//win.main.innerHTML=`<h1>111 222 333 444 555 666 777 888 999 aaa bbb ccc ddd eee fff ggg hhh iii jjj kkk lll mmm nnn.</h1>`
+//let win = await api.openApp("dev.Launcher", {force: true});
 
 },
 make_folder: make_folder,
@@ -7783,6 +7768,7 @@ maximize_window: ()=>{CWIN&&CWIN.maximize();},
 popmacro:()=>{WDG.popmacro();return true;},
 reload_app_window:()=>{return win_reload(CWIN)},
 reload_desk_icons:reload_desk_icons_cb,
+open_explorer: open_home_folder,
 open_root_folder:()=>{
 open_file_by_path("/")
 },
@@ -7905,18 +7891,6 @@ const get_desk_context=()=>{//«
 	}
 	return menu;
 };//»
-/*
-const delete_all_blobs=async()=>{//«
-	if (!globals.is_local) {
-		popup("Not deleting blob storage");
-		return;
-	}
-	let ret = await popyesno(`Delete ALL BLOBS IN STORAGE`,{reverse: true});
-	if (!ret) return;
-	await fsapi.clearStorage();
-	popok("Blobs cleared");
-};//»
-*/
 const make_read_only = ()=>{//«
 	let d = mkdv();
 	d._z=-1;
@@ -7938,14 +7912,6 @@ const check_rs_timer = () => {//«
 		CWIN.status_bar.resize();
 		CWIN.app.onresize();
 	}, RS_TIMEOUT);
-}//»
-const ext_to_app = ext => {//«
-	if (!ext) return DEF_BIN_OPENER;
-	let num = globals.EXT_TO_APP_MAP[ext];
-	if (typeof num == "number" && globals.APP_ARR[num]) {
-		return globals.APP_ARR[num];
-	}
-	return "Unknown";
 }//»
 const set_app_img=(div,app)=>{div.innerText = capi.getAppIcon(app.split(".").pop());};
 const make_cur_drag_img = () => {//«
@@ -8038,6 +8004,27 @@ const pi=x=>{return parseInt(x, 10)}
 const noprop=e=>{e.stopPropagation()}
 const nopropdef=e=>{e.preventDefault();e.stopPropagation()}
 const no_select=(elm)=>{elm.style.userSelect="none"}
+
+/*
+const delete_all_blobs=async()=>{//«
+	if (!globals.is_local) {
+		popup("Not deleting blob storage");
+		return;
+	}
+	let ret = await popyesno(`Delete ALL BLOBS IN STORAGE`,{reverse: true});
+	if (!ret) return;
+	await fsapi.clearStorage();
+	popok("Blobs cleared");
+};//»
+const ext_to_app = ext => {//«
+	if (!ext) return DEF_BIN_OPENER;
+	let num = globals.EXT_TO_APP_MAP[ext];
+	if (typeof num == "number" && globals.APP_ARR[num]) {
+		return globals.APP_ARR[num];
+	}
+	return "Unknown";
+}//»
+*/
 
 //»
 

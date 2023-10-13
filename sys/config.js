@@ -65,11 +65,12 @@ const DESK_PATH = `${HOME_PATH}/Desktop`;
 
 //»
 
+//Apps«
+
 const ALL_EXTENSIONS=[];
-const TEXT_EXTENSIONS=[ "dsp","txt","js","json","app","html","htm","css","ncft"];
+const TEXT_EXTENSIONS=[ "txt","js","json","app","html","htm","css"];
 const MEDIA_EXTENSIONS=["webm","mp4","m4a","ogg","mp3"];
 const IMAGE_EXTENSIONS=["jpg","gif","png","webp"];
-//Apps«
 
 const TERMINAL_APP = "Terminal";
 const IMAGE_APP = "util.ImageView";
@@ -98,8 +99,6 @@ const APP_ARR=[//«
 //	"three.GLTF",
 //	"three.FBX"
 ];//»
-
-//»
 
 //File extensions/Unicode icons«
 //Extension points to the array position above
@@ -148,6 +147,8 @@ const APPICONS={//«
 }//»
 //»
 
+//»
+
 //System appearance«
 const BACKGROUND_IMAGE_URL = "/www/lotw256.png";
 //const DESK_GRADIENT="linear-gradient(135deg,#000 0%,#003 50%,#006 75%,#000077 87%, #777 94%, #ffc 100%)";
@@ -170,6 +171,25 @@ const isMobile = (()=>{//«
 	});
 })();//»
 
+//Prevent the default behaviors of these keydown events«
+/*«
+LEFT_A Navigate back
+RIGHT_A Navigate forward
+f_C Find text
+s_C Save page
+c_CS Focus developer console
+k_C Search google in omnibar
+p_C Popup print dialog
+j_C Open downloads
+e_A Open chrome menu (3 dots)
+"/_" Firefox search page for text
+»*/
+
+const ALWAYS_PREVENT = [
+	"LEFT_A"
+];
+
+//»
 
 export const globals = {//«
 	workers:{
@@ -211,6 +231,8 @@ export const globals = {//«
 	ABOUT_STR,
 	BACKGROUND_IMAGE_URL,
 	DESK_GRADIENT,
+
+	ALWAYS_PREVENT
 };//»
 
 //»

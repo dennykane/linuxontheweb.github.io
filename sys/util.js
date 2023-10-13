@@ -533,7 +533,14 @@ Array.prototype.splice.apply(basearr, args);
 return basearr;
 },//»
 uniq:arr=>{return arr.filter((value,index,array)=>{return array.indexOf(value)===index;});},
-extToApp:(arg)=>{let ext=arg.split(".").pop();let num=EXT_TO_APP_MAP[ext.toLowerCase()];if(!Number.isFinite(num))return DEF_APP;return APP_ARR[num];},
+extToApp: (arg) => {
+	let ext = arg.split(".").pop();
+	let num = EXT_TO_APP_MAP[ext.toLowerCase()];
+	if (!Number.isFinite(num)) return DEF_APP;
+	let got = APP_ARR[num];
+	if (got) return got;
+	return "Unknown";
+},
 clipCopy:s=>{copyarea.value=s;copyarea.select();document.execCommand("copy");},
 setEnv:(k,v)=>{ENV[k]=v;},
 getEnv:k=>{return ENV[k];},
