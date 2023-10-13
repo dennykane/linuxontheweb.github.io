@@ -1,4 +1,7 @@
+/*@EIUKLMY: October 12-ish, 2023: Just added Math.round here. Apparently placeInIconSlot, 
+doesn't work well with numbers like 239.999567...
 
+*/
 /*«
 
 Two folders on the desktop: har and zlar.
@@ -194,6 +197,8 @@ let std_keysym_map={
 
 //»
 //Style/CSS Values«
+
+let ALERT_YELLOW = "#FFBF00";
 
 let TASKBAR_BOR_COL="#575757";
 let TASKBAR_BOR_WID="2.5px";
@@ -523,11 +528,8 @@ const DESK_CONTEXT_MENU=[
 		"Text File",
 		()=>{make_new_icon(desk, "Text")}
 	],
-	"\u{1f4ca}\xa0\xa0About",()=>{make_popup({WIDE:true,STR: ABOUT_STR, TIT: "About"});},
 	"\u{1f5b3}\u{2009}\xa0Terminal",()=>{open_terminal()},
-	'\xa0<span style="font-size: 21px;"><b>\u{2442}</b></span>\xa0\xa0\xa0\xa0Fork\xa0me!',()=>{
-		window.open("https://github.com/linuxontheweb/linuxontheweb.github.io/");
-	},
+	"\u{1f4ca}\xa0\xa0About",()=>{make_popup({WIDE:true,STR: ABOUT_STR, TIT: "About"});},
 ];
 //»
 
@@ -2106,7 +2108,6 @@ const switch_icons = () => {//«
 	if (!(!CWIN && CUR.ison() && ICONS.length===1)) return;
 	let icn1 = CUR.geticon();
 	let icn2 = ICONS[0];
-//log(icn1 === icn2);
 	if (!(icn1 && icn2)) return;
 	if (icn1 === icn2) return;
 	let r1 = icn1.iconElem._gbcr();
@@ -5506,9 +5507,12 @@ log(icn);
 	let low_y = null;
 	let good_it = null;
 	let i = 0;
-	let grid_x = Math.floor((pos.X - startx) / IGSX);
+//EIUKLMY
+	let posX = Math.round(pos.X);
+	let posY = Math.round(pos.Y);
+	let grid_x = Math.floor((posX - startx) / IGSX);
 	if (grid_x < 0) grid_x = 0;
-	let grid_y = Math.floor((pos.Y - starty) / IGSY);
+	let grid_y = Math.floor((posY - starty) / IGSY);
 	if (grid_y < 0) grid_y = 0;
 	let grid_pos = (grid_y * elem.cols) + grid_x;
 	if (!arr[grid_pos] && (grid_x < elem.cols)) {//«
@@ -5522,7 +5526,7 @@ log(icn);
 			let xnum = i % elem.cols;
 			let x = startx + (xnum * IGSX);
 			let y = starty + (ynum * IGSY);
-			let got_dist = dist(x + 40, y + 40, pos.X, pos.Y);
+			let got_dist = dist(x + 40, y + 40, posX, posY);
 			if (got_dist < low_dist) {
 				low_dist = got_dist;
 				low_x = x;
@@ -5873,8 +5877,10 @@ setTimeout(()=>{
 //Widgets«
 
 const Widgets = function() {//«
+
 //Var«
 const api={};
+
 const MENU_BGCOL="#c0c0c0";
 const ACTIVE_MENU_BG = "#006";
 const ACTIVE_MENU_FG = "#fff";
@@ -5904,7 +5910,6 @@ const center = (elem, usewin) => {
 	elem._y = usey;
 }
 //»
-
 
 //Context Menu«
 
@@ -6232,6 +6237,7 @@ const ContextMenu=function(elem, loc, type, prevelem, noarg, if_internal) {//«
 }
 this.ContextMenu = ContextMenu;
 //»
+
 //»
 
 //Popup/Prompt«
@@ -6247,7 +6253,7 @@ let fs;
 let svg_open = '<svg xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" ';
 let noptr = 'pointer-events:none;';
 
-const make_popup_str=(which)=>{let str=svg_open+' width="64px" height="64px">';let alert_yellow='Gold';if(which=="idea"){let lsty_1=' style="fill:none;stroke:#e98f2c;stroke-width:2.5;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"';str+='<path d="m 29.559104,44.909254 a 13.539703,13.539703 0 1 1 12.774974,0.122635" transform="translate(-4.5774122,-5.07004)" style="color:#000000;fill:none;stroke:#e98f2c;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate" />';str+='<path d="m 31.632996,45.55994 1.5398,-6.173398 0.568182,-7.825476-2.651515,-2.531772-4.734849,0-0.189394,2.992094 2.84091,3.222255 4.545454,-0.230161 2.840909,-4.37306 0,-4.142899-2.462121,-3.682577" style="fill:none;stroke:#e98f2c;stroke-width:1.4;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none" />';str+=	'<path d="m 25.407645,39.8604 0,5.871212 12.121212,0 0,-6.060606"'+lsty_1+' />';str+='<path d="M 13.286433,45.731612 19.725827,41.75434"'+lsty_1+' />';str+='<path d="M 14.422796,31.527067 6.6576443,30.958885"'+lsty_1+' />';str+='<path d="M 14.990978,16.75434 11.392493,11.072522"'+lsty_1+' />';str+='<path d="m 24.460675,11.640703 0,-7.575757"'+lsty_1+' />';str+='<path d="M 38.097039,11.640703 39.422796,2.5497945"'+lsty_1+' />';str+='<path d="M 47.566736,15.239188 52.11219,10.314946"'+lsty_1+' />';str+='<path d="m 49.081887,31.148279 7.19697,0.378788"'+lsty_1+' />';str+='<path d="m 43.210675,40.80737 7.386364,5.113636"'+lsty_1+' />';str+='<path d="M 24.460675,51.406327 38.899177,51.005258"'+lsty_1+' />';str+='<path d="M 24.326985,56.794446 38.765487,56.393377"'+lsty_1+' />';str+='<path d="m 35.427806,54.441177 a 1.9385027,4.0775399 0 1 1-3.877005,0 1.9385027,4.0775399 0 1 1 3.877005,0 z" transform="matrix(1,0,0,0.5,-1.3414645,31.023755)" style="color:#000000;fill:#e98f2c;fill-opacity:1;fill-rule:nonzero;stroke:#e98f2c;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate" />';}else if(which=="alert"){str+='<path d="M 32.129316,4.1098389 A 1.9399015,1.9399015 0 0 0 30.558815,5.2119455 L 6.6155497,55.137373 a 1.9399015,1.9399015 0 0 0 1.7358178,2.782819 l 49.0437415,0 A 1.9399015,1.9399015 0 0 0 59.130927,55.10982 L 34.03045,5.1843928 a 1.9399015,1.9399015 0 0 0-1.708265,-1.0745539 1.9399015,1.9399015 0 0 0-0.192869,0 z" style="font-size:medium;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-indent:0;text-align:start;text-decoration:none;line-height:normal;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;block-progression:tb;writing-mode:lr-tb;text-anchor:start;baseline-shift:baseline;color:#000000;fill:'+alert_yellow+';fill-opacity:1;stroke:'+alert_yellow+';stroke-width:3.87899995;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate;font-family:Sans;-inkscape-font-specification:Sans"/>';str+='<g style="font-size:56px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125%;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;fill-opacity:1;stroke:none;font-family:Times New Roman">';str+='<path d="m 32.621634,45.333283 c-2.575997,0-4.704,2.184002-4.704,4.704 0,2.687997 2.016003,4.76 4.648,4.76 2.687997,0 4.816,-2.072003 4.816,-4.648 0,-2.631998-2.128003,-4.816-4.76,-4.816 m 0.784,-4.368 c 0.727999,-6.887994 1.232002,-9.632006 2.912,-15.008 0.783999,-2.463998 1.008,-3.584002 1.008,-4.872 0,-3.639997-1.736003,-5.712-4.704,-5.712-3.023997,0-4.76,2.072003-4.76,5.6 0,1.399998 0.224001,2.464002 1.008,4.984 1.623998,5.319994 2.184001,8.120006 2.912,15.008 l 1.624,0"/></g>';}else if(which=="error"){str+='<path d="M 12.826086,22.695652 0.62845029,34.752046-16.521739,34.652173-28.578133,22.454537-28.47826,5.304348-16.280624,-6.7520463 0.86956503,-6.6521733 12.925959,5.5454627 z" transform="matrix(1.349617,0,0,1.349617,42.340122,13.11007)" style="color:#000000;fill:#d42121;fill-opacity:1;fill-rule:nonzero;stroke:#c6c6c6;stroke-width:1.3996563;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate" />';str+='<text x="8.4782629" y="36.608696" xml:space="preserve" style="font-size:13px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Sans">';str+='<tspan x="8.4782629" y="36.608696">ERROR</tspan></text>';}else if(which=="ok"){str+='<defs><filter color-interpolation-filters="sRGB" id="pu_FILTER"><feGaussianBlur stdDeviation="0.77384537" /></filter></defs>';str+='<rect width="58.038403" height="58.038403" rx="8.0885181" ry="8.1922169" x="3.4741683" y="3.2831869" style="color:#000000;fill:#42c129;fill-opacity:1;fill-rule:nonzero;stroke:#000000;stroke-width:1.45200002;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;visibility:visible;display:inline;overflow:visible;filter:url(#pu_FILTER);enable-background:accumulate" />';str+='<text x="16.18037" y="47.81963" xml:space="preserve" style="font-size:48px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;fill-opacity:1;stroke:none;font-family:Times New Roman;-inkscape-font-specification:\"Times New Roman\"">';str+='<tspan x="15.18037" y="47.81963">&#x2713;</tspan></text>';}str+='</svg>';return [str];};
+const make_popup_str=(which)=>{let str=svg_open+' width="64px" height="64px">';if(which=="idea"){let lsty_1=' style="fill:none;stroke:#e98f2c;stroke-width:2.5;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"';str+='<path d="m 29.559104,44.909254 a 13.539703,13.539703 0 1 1 12.774974,0.122635" transform="translate(-4.5774122,-5.07004)" style="color:#000000;fill:none;stroke:#e98f2c;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate" />';str+='<path d="m 31.632996,45.55994 1.5398,-6.173398 0.568182,-7.825476-2.651515,-2.531772-4.734849,0-0.189394,2.992094 2.84091,3.222255 4.545454,-0.230161 2.840909,-4.37306 0,-4.142899-2.462121,-3.682577" style="fill:none;stroke:#e98f2c;stroke-width:1.4;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none" />';str+=	'<path d="m 25.407645,39.8604 0,5.871212 12.121212,0 0,-6.060606"'+lsty_1+' />';str+='<path d="M 13.286433,45.731612 19.725827,41.75434"'+lsty_1+' />';str+='<path d="M 14.422796,31.527067 6.6576443,30.958885"'+lsty_1+' />';str+='<path d="M 14.990978,16.75434 11.392493,11.072522"'+lsty_1+' />';str+='<path d="m 24.460675,11.640703 0,-7.575757"'+lsty_1+' />';str+='<path d="M 38.097039,11.640703 39.422796,2.5497945"'+lsty_1+' />';str+='<path d="M 47.566736,15.239188 52.11219,10.314946"'+lsty_1+' />';str+='<path d="m 49.081887,31.148279 7.19697,0.378788"'+lsty_1+' />';str+='<path d="m 43.210675,40.80737 7.386364,5.113636"'+lsty_1+' />';str+='<path d="M 24.460675,51.406327 38.899177,51.005258"'+lsty_1+' />';str+='<path d="M 24.326985,56.794446 38.765487,56.393377"'+lsty_1+' />';str+='<path d="m 35.427806,54.441177 a 1.9385027,4.0775399 0 1 1-3.877005,0 1.9385027,4.0775399 0 1 1 3.877005,0 z" transform="matrix(1,0,0,0.5,-1.3414645,31.023755)" style="color:#000000;fill:#e98f2c;fill-opacity:1;fill-rule:nonzero;stroke:#e98f2c;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate" />';}else if(which=="alert"){str+='<path d="M 32.129316,4.1098389 A 1.9399015,1.9399015 0 0 0 30.558815,5.2119455 L 6.6155497,55.137373 a 1.9399015,1.9399015 0 0 0 1.7358178,2.782819 l 49.0437415,0 A 1.9399015,1.9399015 0 0 0 59.130927,55.10982 L 34.03045,5.1843928 a 1.9399015,1.9399015 0 0 0-1.708265,-1.0745539 1.9399015,1.9399015 0 0 0-0.192869,0 z" style="font-size:medium;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-indent:0;text-align:start;text-decoration:none;line-height:normal;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;block-progression:tb;writing-mode:lr-tb;text-anchor:start;baseline-shift:baseline;color:#000000;fill:'+ALERT_YELLOW+';fill-opacity:1;stroke:'+ALERT_YELLOW+';stroke-width:3.87899995;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate;font-family:Sans;-inkscape-font-specification:Sans"/>';str+='<g style="font-size:56px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125%;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000;fill-opacity:1;stroke:none;font-family:Times New Roman">';str+='<path d="m 32.621634,45.333283 c-2.575997,0-4.704,2.184002-4.704,4.704 0,2.687997 2.016003,4.76 4.648,4.76 2.687997,0 4.816,-2.072003 4.816,-4.648 0,-2.631998-2.128003,-4.816-4.76,-4.816 m 0.784,-4.368 c 0.727999,-6.887994 1.232002,-9.632006 2.912,-15.008 0.783999,-2.463998 1.008,-3.584002 1.008,-4.872 0,-3.639997-1.736003,-5.712-4.704,-5.712-3.023997,0-4.76,2.072003-4.76,5.6 0,1.399998 0.224001,2.464002 1.008,4.984 1.623998,5.319994 2.184001,8.120006 2.912,15.008 l 1.624,0"/></g>';}else if(which=="error"){str+='<path d="M 12.826086,22.695652 0.62845029,34.752046-16.521739,34.652173-28.578133,22.454537-28.47826,5.304348-16.280624,-6.7520463 0.86956503,-6.6521733 12.925959,5.5454627 z" transform="matrix(1.349617,0,0,1.349617,42.340122,13.11007)" style="color:#000000;fill:#d42121;fill-opacity:1;fill-rule:nonzero;stroke:#c6c6c6;stroke-width:1.3996563;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate" />';str+='<text x="8.4782629" y="36.608696" xml:space="preserve" style="font-size:13px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Sans">';str+='<tspan x="8.4782629" y="36.608696">ERROR</tspan></text>';}else if(which=="ok"){str+='<defs><filter color-interpolation-filters="sRGB" id="pu_FILTER"><feGaussianBlur stdDeviation="0.77384537" /></filter></defs>';str+='<rect width="58.038403" height="58.038403" rx="8.0885181" ry="8.1922169" x="3.4741683" y="3.2831869" style="color:#000000;fill:#42c129;fill-opacity:1;fill-rule:nonzero;stroke:#000000;stroke-width:1.45200002;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;visibility:visible;display:inline;overflow:visible;filter:url(#pu_FILTER);enable-background:accumulate" />';str+='<text x="16.18037" y="47.81963" xml:space="preserve" style="font-size:48px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;fill-opacity:1;stroke:none;font-family:Times New Roman;-inkscape-font-specification:\"Times New Roman\"">';str+='<tspan x="15.18037" y="47.81963">&#x2713;</tspan></text>';}str+='</svg>';return [str];};
 
 const attach = (obj) => {
 	let parelm = obj['PAR'];
@@ -6441,6 +6447,9 @@ const poparea = (str_or_arr, title, if_rev_arr, cb, read_only, if_cancel, win) =
 	let div = make('div');
 	let area = make('textarea');
 	area.value = arr.join("\n");
+	area._bgcol="#211";
+	area._tcol="#EEEEEE";
+	area.style.outline = "none";
 	area.id="prompt_textarea";
 	if (read_only) {
 		area.setAttribute("readonly", "1");
@@ -6556,9 +6565,9 @@ const mkpopup_tdiv = (str, opts={}) => {//«
 	}
 	if (text_fs) tdiv._fs = text_fs;
 	else tdiv._fs = 18;
-	if (!(opts.NOBOLD||if_systerm)) tdiv._fw="bold";
+//	if (!(opts.NOBOLD||if_systerm)) tdiv._fw="bold";
 	
-	tdiv._tcol="black";
+	tdiv._tcol="#ccc";
 	tdiv._pos='absolute';
 	let usex = 109;
 	if (if_big_img) usex += 64;
@@ -6587,15 +6596,15 @@ const mkpopup_tdiv = (str, opts={}) => {//«
 			tdiv.innerHTML=str;
 		} 
 		else if (str instanceof HTMLElement) tdiv._add(str);
-		do_links(tdiv);
+//		do_links(tdiv);
 	}
 	return tdiv;
 }//»
 const make_popup = (arg) => {//«
-	const popup_dequeue = () => {
+	const popup_dequeue = () => {//«
 		make_popup(_popup_queue.shift());
-	}
-	const mkbut=(txt, if_active)=>{
+	}//»
+	const mkbut=(txt, if_active)=>{//«
 		let d = mkdv();
 //		d.tabIndex=""+(cur_tab_index++);
 		d.onfocus=()=>{
@@ -6604,13 +6613,14 @@ const make_popup = (arg) => {//«
 		}
 		d.onblur=()=>{
 			d._fw="";
-			d._bgcol="";
+			d._bgcol="#aaa";
 		}
 		d.style.textAlign="center";
 		d._fs=14;
 		d._tcol="#000";
 		d.innerText=txt;
 		d._bor="3px outset #ccc";
+		d._bgcol="#aaa";
 		d.onmousedown=()=>{d._bor="3px inset #ccc";};
 		d.onmouseup=()=>{d._bor="3px outset #ccc";};
 		d.onmouseout=()=>{d._bor="3px outset #ccc";};
@@ -6618,8 +6628,8 @@ const make_popup = (arg) => {//«
 		d.type = "popup_button";
 		if (if_active) active_button = d;
 		return d;
-	}
-	const do_cancel = ()=>{
+	}//»
+	const do_cancel = ()=>{//«
 		div._del();
 		if (win) delete win.popup;
 		else{
@@ -6634,11 +6644,11 @@ const make_popup = (arg) => {//«
 			if (_popup_queue.length) popup_dequeue();
 			else if (holdwin) holdwin.on();
 		}
-	};
-	const nopropdef=(e)=>{
+	};//»
+	const nopropdef=(e)=>{//«
 		e.stopPropagation();
 		e.preventDefault();
-	};
+	};//»
 	const noprop=(e)=>{
 		e.stopPropagation();
 	};
@@ -6666,6 +6676,7 @@ const make_popup = (arg) => {//«
 	let oktxt, cantxt;
 	let comp_keydown;
 	let div = make('div');
+	div.id="system_prompt";
 	let butdiv = make('div');
 	let cancel_button_div;
 	let okbutdiv;
@@ -6751,7 +6762,9 @@ const make_popup = (arg) => {//«
 	div.nosave = true;
 	div._w = usewid;
 	div._h = def_h;
-	div._bgcol="#fff";
+//	div._bgcol="#fff";
+	div._bgcol=WIN_COL_OFF;
+//	div._tcol="#ccc";
 	div._pos='absolute';
 	if (!win) {
 		div._z = 10000000;
@@ -6772,7 +6785,7 @@ const make_popup = (arg) => {//«
 		bar._tcol="#bbb";
 		bar.innerHTML = title;
 	}
-	bar._bgcol="#303030";
+	bar._bgcol="#171717";
 	div._add(bar);
 	let imgdiv = mkpopup_imgdiv(type, use_img, big_img);
 	imgdiv._x = 25;
@@ -7022,7 +7035,7 @@ NS.api.widgets=api;
 
 }//»
 
-const WDG = new Widgets();
+const WDG = new Widgets();//«
 globals.widgets = WDG;
 const{popup:_popup,poperr:_poperr,popok:_popok,make_popup:_make_popup}=WDG;
 const WDGAPI = NS.api.widgets
@@ -7031,6 +7044,7 @@ const popup=(s,opts)=>{_popup(s,opts);};
 const poperr=(s,opts)=>{_poperr(s,opts);};
 const popok=(s,opts)=>{_popok(s,opts);};
 const make_popup = arg=>{return _make_popup(arg);};
+//»
 
 //»
 //Saving«

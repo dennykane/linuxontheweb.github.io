@@ -2001,7 +2001,7 @@ cerr(`getAll failure for id: ${dirid}`);
 }
 let rows = rv.rows;
 for (let obj of rows){
-	const {id, name, type, value} = obj;
+	let {id, name, type, value} = obj;
 	let islink = type == LINK_FS_TYPE;
 	let kid = mk_dir_kid(parobj, name, {
 		isDir: (type == DIRECTORY_FS_TYPE),
@@ -2010,6 +2010,9 @@ for (let obj of rows){
 	kid.blobId = value;
 	kid.id = id;
 	if (islink){
+		if (!value.match(/^\x2f/)){
+			value = `${kid.path}/${value}`;
+		}
 		kid.link = value;
 		kid.ref = await pathToNode(value);
 	}

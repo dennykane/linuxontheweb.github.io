@@ -388,7 +388,7 @@ const com_ln = async (term, args) => {//«
 	if (!args.length) return terr("ln: missing file operand");
 	let target = args.shift();
 	if (!args.length) return terr("ln: missing link name");
-
+//	if (!target.match(/^\x2f/)) return terr("The target must be an absolute path!");
 
 	let path = args.shift();
 	if (args.length) return terr("ln: too many arguments");

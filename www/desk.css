@@ -18,6 +18,9 @@ body{
 a:hover{
 	cursor:pointer;
 }
+a:visited{
+	color:#add8e6;
+}
 .clicked{
 	text-decoration:none;
 	font-style:italic;

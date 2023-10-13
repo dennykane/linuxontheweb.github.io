@@ -13,6 +13,8 @@ const ABOUT_STR=`
 <i>Linux on the Web</i> is a next-generation platform for the rapid
 prototyping, development and distribution of web-based applications, and is a
 good choice for hobbyists and scientists.
+<p>
+<a href="https://github.com/linuxontheweb/linuxontheweb.github.io/">Click here</a> to "fork me" on Github.
 
 `;
 //»
@@ -149,7 +151,7 @@ const APPICONS={//«
 //System appearance«
 const BACKGROUND_IMAGE_URL = "/www/lotw256.png";
 //const DESK_GRADIENT="linear-gradient(135deg,#000 0%,#003 50%,#006 75%,#000077 87%, #777 94%, #ffc 100%)";
-const DESK_GRADIENT="linear-gradient(135deg,#000 0%,#003 50%,#006 75%,#000077 87%, #cc7 100%)";
+const DESK_GRADIENT="linear-gradient(135deg,#000 0%,#003 50%,#006 75%,#000077 92%, #aa9 100%)";
 
 //»
 
