@@ -5002,6 +5002,7 @@ this.on=(is_tog)=>{
 	curElem._op=1;
 	curElem._dis="";
 	curElem.scrollIntoViewIfNeeded();
+	this.set();
 };
 this.off=(is_tog)=>{
 	if (is_tog) cur_showing = false;
