@@ -338,6 +338,7 @@ let desktop_bgcol = "#000",
 	menubar_bg_color = "#e8e8e8",
 
 	window_boxshadow = "3px 3px 20px rgba(255,255,255,0.10)",
+	prompt_boxshadow = "3px 3px 20px rgba(255,255,255,0.375)",
 //	window_boxshadow = "",
 	window_boxshadow_hold;
 
@@ -6326,7 +6327,6 @@ const igen = new IGen();
 
 //»
 let popup_link_col = "#009"
-//let prompt_boxshadow = "0px 0px 20px 2px #888888";
 let popup_queue = [];
 const make_func_span=(str,cb)=>{let sp=make('sp');if(str=="__BR__")str="<hr style='margin:0px;height:6px;visibility:hidden;'>";sp.html(str);if(cb){sp.ael('click',cb);sp._tcol=popup_link_col;sp.style.textDecoration="underline";sp.style.cursor="pointer";}return sp;}
 const make_func_div=(all)=>{let div=make('div');for(let i=0;i<all.length;i++){let arr=all[i];if(typeof arr=="string")div._add(make_func_span(arr));else div._add(make_func_span(arr[0],arr[1]));}return div;}
@@ -6739,7 +6739,7 @@ const make_popup = (arg) => {//«
 	div._add(butdiv);
 	div._fs=18;
 	div.style.userSelect = "none";
-	div.style.boxShadow = "2px 3px 7px #444";
+	div.style.boxShadow = prompt_boxshadow;
 	if (document.activeElement) document.activeElement.blur();
 	if (typeof arg == "string") {
 		str = arg;
