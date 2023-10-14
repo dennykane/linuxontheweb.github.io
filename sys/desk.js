@@ -2225,10 +2225,9 @@ cerr("Where is the minimized window?");
 		return;
 	}//»
 
-
 	if (app==FOLDER_APP) {//«
 		let w = icn.parWin;
-		if (w.saver || (w!==desk && !force && folders_open_in_same_window)){
+		if (w && (w.saver || (w!==desk && !force && folders_open_in_same_window))){
 			let obj;
 			if (w.saver) obj={SAVER: w.saver};
 			icn.winargs={BOTTOMPAD: w.bottompad, X: w.winElem._x, Y:w.winElem._y, WID: w.main._w, HGT: w.main._h};
