@@ -2877,8 +2877,10 @@ const Window = function(arg){//«
 	titlebar._add(title);
 
 	let namespan = make('span');
+	namespan._dis="block";
 	namespan.id="namespan_"+winid;
 	namespan._fs= 12;
+	namespan._padt=1;
 	namespan["tcol.on"] = WINNAME_COL_ON;
 	namespan["tcol.off"] = WINNAME_COL_OFF;
 	namespan.title = winid;
