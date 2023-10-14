@@ -1,11 +1,11 @@
-/*
+/*«
 
 NEED TO BE ON THE LOOK OUT FOR EVERY CSS VALUE THAT NEEDS TO BE IN
 "px" RATHER THAN BEING A NUMBER!!!!
 
-As long as everything is set via the underscore method, this should not
-be a problem. Whoever independently sets elem.style.width=10 is going
-to have a problem now!
+As long as everything is set via the underscore method, this should not be a
+problem. Whoever independently sets elem.style.width=10 (as well as
+right/bottom) is going to have a problem now!
 
 This is really only considered quirks mode because we set css values that
 expect the string "100px" with just the number, 100. So the browser has to
@@ -26,7 +26,7 @@ the icon's method of .del()!!!  Do we need to do a finegrained check of all
 @EIUKLMY: October 12-ish, 2023: Just added Math.round here. Apparently placeInIconSlot, 
 doesn't work well with numbers like 239.99999567...
 
-*/
+»*/
 /*«
 
 Two folders on the desktop: har and zlar.
@@ -810,7 +810,7 @@ return;
 				DDD._w= e.clientX - DDIE.clientX;
 			} else {
 				DDD.style.left = "";
-				DDD.style.right = winw() - DDIE.clientX+winx();
+				DDD.style.right = (winw() - DDIE.clientX+winx())+"px";
 				DDD._w= DDIE.clientX - e.clientX;
 			}
 			if (DDIE.clientY < e.clientY) {
@@ -819,7 +819,7 @@ return;
 				DDD._h = e.clientY - DDIE.clientY;
 			} else {
 				DDD.style.top = "";
-				DDD.style.bottom = winh(true) - DDIE.clientY+winy();
+				DDD.style.bottom = (winh(true) - DDIE.clientY+winy())+"px";
 				DDD._h = DDIE.clientY - e.clientY;
 			}
 drag_timeout = setTimeout(()=>{
@@ -853,7 +853,7 @@ drag_timeout = setTimeout(()=>{
 				d._w= gotw;
 			} else {
 				d.style.left = "";
-				d.style.right = w.main._w - (WDIE.clientX - w.winElem.offsetLeft + m.scrollLeft) - x_scroll_diff + scrleftdiff + winx();
+				d.style.right = (w.main._w - (WDIE.clientX - w.winElem.offsetLeft + m.scrollLeft) - x_scroll_diff + scrleftdiff + winx())+"px";
 				d._w= WDIE.clientX - e.clientX - scrleftdiff;
 			}
 			if (WDIE.clientY < e.clientY) {
