@@ -6,7 +6,7 @@ I hope to bring those same feelings back in the context of web development.
 
 Although this project includes a desktop environment, it is not primarily
 "about" that.  It is mainly about the idea that modern browsers now offer a
-programmatically accessible file system that exists within a domain-specific
+programmatically accessible file system that exists within a domain-centric 
 sandbox. 
 <a href="https://linuxontheweb.github.io/docs/what-it-is.html">Go here</a> to read
 more.
