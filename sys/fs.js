@@ -1408,26 +1408,6 @@ return;
 	});
 }
 //»
-/*
-const get_blob_dir=()=>{//«
-	return new Promise(async(Y,N)=>{
-let opfs = await navigator.storage.getDirectory();
-log(opfs);
-
-		window.requestFileSystem = window.webkitRequestFileSystem;
-		if (!window.requestFileSystem)  {
-			await capi.makeScript("/www/fs-shim.js");
-		}
-		window.requestFileSystem(TEMPORARY, 10*1024*1024, rv=>{
-			rv.root.getDirectory("blobs",{create: true},Y,()=>{
-				Y();
-			});
-		}, ()=>{
-			Y();
-		});
-	});
-};//»
-*/
 const get_blob_dir=async ()=>{//«
 let opfs = await navigator.storage.getDirectory();
 let blobDir = await opfs.getDirectoryHandle('blobs', {create: true});
