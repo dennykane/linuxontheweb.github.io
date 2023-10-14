@@ -6,10 +6,21 @@ I hope to bring those same feelings back in the context of web development.
 
 Although this project includes a desktop environment, it is not primarily
 "about" that.  It is mainly about the idea that modern browsers now deploy a
-new kind of file system that exists within a domain-specific sandbox. <a href="https://linuxontheweb.github.io/docs/what-it-is.html">Go here</a> to read more.
+new kind of file system that exists within a domain-specific sandbox. 
+<a href="https://linuxontheweb.github.io/docs/what-it-is.html">Go here</a> to read more.
 
 Try out the current version at 
 <a href="https://linuxontheweb.github.io">linuxontheweb.github.io</a>.
+
+## Local deployment
+
+Locally deploying LOTW is as simple as simple can be. All you need to do is run
+a web server in the root of the project directory. On Linux, this command
+should suffice for most people:
+
+	$ python3 -m http.server
+
+You should then be able to visit the site at http://localhost:8000.
 
 ## Viewing and editing source files
 
