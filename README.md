@@ -5,9 +5,11 @@ The online communities that gathered around it were truly pleasurable to be a pa
 I hope to bring those same feelings back in the context of web development.
 
 Although this project includes a desktop environment, it is not primarily
-"about" that.  It is mainly about the idea that modern browsers now deploy a
-new kind of file system that exists within a domain-specific sandbox. 
-<a href="https://linuxontheweb.github.io/docs/what-it-is.html">Go here</a> to read more.
+"about" that.  It is mainly about the idea that modern browsers now offer a
+programmatically accessible file system that exists within a domain-specific
+sandbox. 
+<a href="https://linuxontheweb.github.io/docs/what-it-is.html">Go here</a> to read
+more.
 
 Try out the current version at 
 <a href="https://linuxontheweb.github.io">linuxontheweb.github.io</a>.
