@@ -4,18 +4,14 @@ Linux used to be fun because expectations were low and possibilities were high.
 The online communities that gathered around it were truly pleasurable to be a part of.
 I hope to bring those same feelings back in the context of web development.
 
-## FYI
+Although this project includes a desktop environment, it is not primarily
+"about" that.  It is mainly about the idea that modern browsers now deploy a
+new kind of file system that exists in a kind of domain-specific sandbox.  
+<a href="https://linuxontheweb.github.io/docs/what-it-is.html">Go here</a> to read
+more.
 
-Since I'm only one person, and I mainly like working with Chromebooks [1], 
-this project is currently only very useful for Chromium-based browsers.
-
-My next priority is to make this project also work well with Firefox browsers in 
-various Linux distributions.
-
-There are no plans to worry over any Apple-only browser engines.
-
-[1] Chromebooks are very cheap and easy to put into developer mode to install a working
-Linux system, via [the crouton environment](https://github.com/dnschneid/crouton).
+Try out the current version at 
+<a href="https://linuxontheweb.github.io">linuxontheweb.github.io</a>.
 
 ## Viewing and editing source files
 
