@@ -18,7 +18,7 @@ Locally deploying LOTW is as simple as simple can be. All you need to do is run
 a web server in the root of the project directory. On Linux, this command
 should suffice for most people:
 
-	$ python3 -m http.server
+	python3 -m http.server
 
 You should then be able to visit the site at http://localhost:8000.
 
