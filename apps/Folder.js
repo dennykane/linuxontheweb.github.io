@@ -139,7 +139,6 @@ statbar._add(mess_div);
 statbar._add(cur_div);
 statbar._add(num_div);
 //log(statbar);
-mess_div.innerHTML="\xa0[<b>b</b>]ack [<b>f</b>]orward";
 const statnum=(s)=>{
 	num_div.innerHTML=`${s}\xa0`;
 };
@@ -225,6 +224,12 @@ const stat_num=()=>{//«
 	else if (num_entries==1) statnum("1 entry");
 	else statnum(`${num_entries} entries`);
 };//»
+const stat_mess=()=>{
+	let mess_str="";
+	if (dir.fullpath!="/") mess_str = "\xa0[<b>b</b>]ack ";
+	if (prev_paths) mess_str += "[<b>f</b>]orward";
+	mess_div.innerHTML = mess_str;
+};
 
 //»
 
@@ -305,8 +310,6 @@ if (path) poperr(`Directory not found: ${path}`);
 else cwarn("Opening in 'app mode'");
 		return;
 	}
-//HDKMHHNDUH
-//	if (if_reinit || !dir.done){
 
 //Show a loading message in the Main window of the Folder app: //«
 //In apps/sys/Folder.js->init
@@ -342,22 +345,11 @@ else cwarn("Opening in 'app mode'");
 		load_dir();
 	}
 //»
-/*
-	if (!dir.done){
-		stat("Getting entries...");
-		let cb=(ents)=>{
-//			num_entries+=ents.length;
-//			stat_num();
-		};
-		await fs.popDirByPath(path, {par:dir,streamCb:cb});
-		dir.done=true;
-		load_dir();
-	}
-*/
 	if (dir.type!==FS_TYPE) {
 		num_entries = Object.keys(dir.kids).length-2;
 		stat_num();
 	}
+	stat_mess();
 
 	Y();
 });
@@ -500,10 +492,8 @@ this.onfocus=()=>{Main.focus();};
 this.onblur=()=>{Main.blur();};
 this.onappinit=(arg, prevpaths)=>{
 prev_paths = prevpaths;
-//log("PREV",prevpath);
 path = arg;
 init();
-//log("APPINIT", arg);
 };
 //this.onload=()=>{init();};
 this.update=()=>{
