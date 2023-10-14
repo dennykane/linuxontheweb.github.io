@@ -6496,6 +6496,7 @@ const poparea = (str_or_arr, title, if_rev_arr, cb, read_only, if_cancel, win) =
 	else arr = str_or_arr;
 	if (if_rev_arr) arr = arr.reverse();
 	let div = make('div');
+//	div._h="100%";
 	let area = make('textarea');
 	area.value = arr.join("\n");
 	area._bgcol="#211";
@@ -6506,14 +6507,17 @@ const poparea = (str_or_arr, title, if_rev_arr, cb, read_only, if_cancel, win) =
 		area.setAttribute("readonly", "1");
 	}
 	area._w="100%";
-	area._h="100%";
+	area._h="95%";
+//log(area);
+
 	area._fs = 20;
-	div._add(area);
+//	div._add(area);
 	return make_popup({
 //		INPUT:if_input,
 		USEINPUT:area,
 		'SEL': true,
-		'STR': div,
+//		'STR': div,
+		STR: area,
 		'VERYBIG': true,
 		'CB': cb,
 		'TIT': title,
@@ -6771,7 +6775,7 @@ const make_popup = (arg) => {//«
 	if (!str) str = "";
 	if (typeof str == "object" && typeof str.length == "number") str = make_func_div(str);
 	else if (typeof str == "string") str = str.replace(/__BR__/g, "<hr style='margin:0px;height:6px;visibility:hidden;'>");
-	if (str instanceof HTMLElement) div.htelem = str;
+//	if (str instanceof HTMLElement) div.htelem = str;
 	let usewid = 420;
 	if (big_img||arg.WIDE) usewid += 64;
 	let def_text_h = 75;
