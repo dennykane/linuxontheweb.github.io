@@ -23,6 +23,11 @@ should suffice for most people:
 	python3 -m http.server
 
 You should then be able to visit the site at http://localhost:8000.
+You can optionally specify a custom port number like so:
+
+	python3 -m http.server 12345
+
+The site should then be live at http://localhost:12345.
 
 ## Viewing and editing source files
 
