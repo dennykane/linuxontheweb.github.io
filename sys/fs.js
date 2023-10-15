@@ -196,7 +196,7 @@ cerr(e);
 
 this.init=async(root, dbname, dbsize, branch_name)=>{//«
 	if (db) return;
-	if (!await init_db()) return Y();
+	if (!await init_db()) return;
 	let rootid = await get_by_path(`0/${branch_name}`, true);
 	if (!rootid) return;
 	root.id = rootid;

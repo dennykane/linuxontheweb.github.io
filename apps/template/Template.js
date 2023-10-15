@@ -24,7 +24,6 @@ this.onresize=resize;
 this.onappinit=()=>{//«
 }//»
 this.onkill=()=>{//«
-cancelAnimationFrame(rafId);
 };//»
 this.onkeydown=(e,k)=>{//«
 };//»
