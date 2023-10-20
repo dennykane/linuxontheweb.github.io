@@ -458,7 +458,8 @@ const doParseNumber = (thisarg, opts, if_float) => {//«
 	return val;
 };//»
 
-const CSS_PX_NUMBER_START_POS = 26;
+//const CSS_PX_NUMBER_START_POS = 26;
+/*
 const set_style_props = (which, arr) => {//«
 	for (var i = 0; i < arr.length; i += 2) {
 		(function(k, v, iter) {
@@ -482,7 +483,38 @@ if (Number.isFinite(arg) && iter >= CSS_PX_NUMBER_START_POS){
 		})(arr[i], arr[i + 1], i);
 	}
 }//»
-set_style_props(HTMLElement,//«
+*/
+const set_style_props_1 = (which, arr) => {//«
+	for (var i = 0; i < arr.length; i += 2) {
+		(function(k, v) {
+			Object.defineProperty(which.prototype, k, {
+				get: function() {
+					return this.style[v];
+				},
+				set: function(arg) {
+					this.style[v] = arg;
+				}
+			});
+		})(arr[i], arr[i + 1]);
+	}
+}//»
+const set_style_props_2 = (which, arr) => {//«
+	for (var i = 0; i < arr.length; i += 2) {
+		(function(k, v) {
+			Object.defineProperty(which.prototype, k, {
+				get: function() {
+					return parseInt(this.style[v]);
+				},
+				set: function(arg) {
+					if (Number.isFinite(arg)) this.style[v]=`${arg}px`;
+					else this.style[v]= arg;
+				}
+			});
+		})(arr[i], arr[i + 1]);
+	}
+}//»
+
+set_style_props_1(HTMLElement,//«
 [
 
 // !! If anything is ever inserted up to the _END_, the CSS_PX_NUMBER_START_POS **MUST** be updated !!
@@ -499,10 +531,15 @@ set_style_props(HTMLElement,//«
 "_over", "overflow",
 "_overx", "overflowX",
 "_overy", "overflowY",
-"_z", "zIndex",
+"_z", "zIndex"
+
+]);
+//»
 //_END_
 
-"_fs","fontSize",// CSS_PX_NUMBER_START_POS = 13*2 = 26
+set_style_props_2(HTMLElement,//«
+[
+"_fs","fontSize",
 "_pad", "padding",
 "_padt", "paddingTop",
 "_padb", "paddingBottom",
@@ -519,9 +556,8 @@ set_style_props(HTMLElement,//«
 "_b","bottom",
 "_w","width",
 "_h", "height"
-
 ]);//»
-set_style_props(SVGElement,//«
+set_style_props_1(SVGElement,//«
 [
 "_op","opacity",
 "_dis","display"
@@ -3421,8 +3457,8 @@ Object.defineProperty(this, "title", {//«
 		if (pl) usepl = pi(pl);
 		if (pr) usepr = pi(pr);
 		win._loc(1,0);
-		main.style.width = winw() - usepl - usepr - 2;
-		main.style.height = winh() - this.titlebar._gbcr().height - this.footer._gbcr().height;
+		main.style.width = winw() - usepl - usepr - 2 + "px";
+		main.style.height = winh() - this.titlebar._gbcr().height - this.footer._gbcr().height + "px";
 		win.style.boxShadow = "";
 		max.innerText="\u{1f5d7}";
 		max.title="Unmaximize";
@@ -3450,7 +3486,7 @@ Object.defineProperty(this, "title", {//«
 			this.set_max_dims();
 		} else {
 			this.is_maxed = false;
-			main._w= this.maxholdw;
+			main._w = this.maxholdw;
 			main._h = this.maxholdh;
 			win._x= this.maxholdx;
 			win._y= this.maxholdy;
