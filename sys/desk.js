@@ -327,7 +327,7 @@ let ICON_DIM = 44,
 	win_move_inc_small = 5,
 	win_resize_inc = 50,
 	win_resize_inc_small = 5,
-	min_win_width = 86,
+	min_win_width = 140,
 	min_win_hgt = 50
 
 let desktop_bgcol = "#000",
@@ -458,7 +458,6 @@ const doParseNumber = (thisarg, opts, if_float) => {//«
 	return val;
 };//»
 
-//const CSS_PX_NUMBER_START_POS = 26;
 /*
 const set_style_props = (which, arr) => {//«
 	for (var i = 0; i < arr.length; i += 2) {
@@ -535,8 +534,6 @@ set_style_props_1(HTMLElement,//«
 
 ]);
 //»
-//_END_
-
 set_style_props_2(HTMLElement,//«
 [
 "_fs","fontSize",
@@ -4516,9 +4513,13 @@ let dir = CRW.rs_dir;
 if (!dir){//«
 let elem = CRW.winElem;
 //log(CRW);
-	CRW.main._w= CRW.main._w + (e.clientX - (pi(CRW.main.offsetWidth) + elem._x)) - winx();
+	CRW.main._w = CRW.main._w + (e.clientX - (pi(CRW.main.offsetWidth) + elem._x)) - winx();
 	CRW.main._h = CRW.main._h + (e.clientY - (pi(CRW.main.offsetHeight) + elem._y + CRW.titlebar._h + CRW.footer.getBoundingClientRect().height)) - winy();
-	if (CRW.main._w < min_win_width) CRW.main._w= min_win_width;
+
+
+	if (CRW.main._w < min_win_width) {
+		CRW.main._w = min_win_width;
+	}
 	CRW.status_bar.resize();
 	return;
 }//»
