@@ -1090,7 +1090,7 @@ $ cat ' 'file w<TAB>
 //Development mod deleting«
 
 const DEL_MODS=[
-//	"editor",
+	"editor",
 //	"webmparser"
 //	"pager"
 ];

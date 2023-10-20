@@ -256,6 +256,9 @@ let did_type_flag;
 let splice_mode = false;
 let splice_start, splice_end;
 
+this.command_history = [];
+this.search_history = [];
+
 let last_action;//«
 let last_action_hold;
 const LAST_CH = 1;
@@ -4485,7 +4488,8 @@ if (!com) {
 	return;
 }
 
-Core.save_shell_com(com, "vc");//Vim Command
+//Core.save_shell_com(com, "vc");//Vim Command
+
 this.command_history.unshift(com);
 let marr;
 if (marr = com.match(/^(%)?s\/(.*)$/)){
@@ -4522,7 +4526,8 @@ else if (marr = com.match(/^syntax +(.+)$/)){
 cwarn("Using syntax", SYNTAX);
 }
 else if (com=="q"||com=="quit")maybequit();
-else if (com=="w"||com=="write")stat_render("Ctrl+s to save!");
+//else if (com=="w"||com=="write"||com.match(/^w( +(.+))?$/))stat_warn("Ctrl+s to save!");
+else if (com.match(/^w(rite)?( +(.+))?$/))stat_warn("Ctrl+s to save!");
 else if (marr = com.match(/^set( +(.+))?$/)){
 	if (!marr[2]) return stat("Nothing to set!");
 	let arr = marr[2].split(/ +/);
@@ -4550,7 +4555,7 @@ else stat_err("Unknown command: " + com);
 }//»
 else if (mode=="/"||mode=="?"){//«
 	if (!com) return render({},88);
-	Core.save_shell_com(com, "vs"); //Vim Search
+//	Core.save_shell_com(com, "vs"); //Vim Search
 	this.search_history.unshift(com);
 	scroll_search_str = com;
 	scroll_search_dir=mode;
@@ -4571,7 +4576,10 @@ else{
 
 
 };//»
-const download=(str,which)=>{stat_render("Fold error detected,downloading core...");Core.api.download(str,"VIMDUMP.json");};
+const download = (str, which) => {
+	stat_render("Fold error detected,downloading core...");
+	Core.api.download(str, "VIMDUMP.json");
+};
 
 //»
 //Handlers«
@@ -5346,8 +5354,8 @@ else if (sym=="q_A"){
 }
 »*/
 	else if (sym=="d_CA"){
-		let arr = get_edit_save_arr();
-		Core.api.download(arr[0],edit_fname||"VIMDL.txt")
+//		let arr = get_edit_save_arr();
+//		Core.api.download(arr[0],edit_fname||"VIMDL.txt")
 	}
 	else if (sym=="r_CA") {
 //log(1);
