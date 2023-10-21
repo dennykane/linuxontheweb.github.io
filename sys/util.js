@@ -3,7 +3,6 @@ import { globals } from "./config.js";
 const {//«
 	ALL_EXTENSIONS,
 	EXT_TO_APP_MAP,
-	APP_ARR,
 	APPICONS,
 	DEF_APP,
 	NS
@@ -323,7 +322,6 @@ const make_script = (path, load, err, ifrand, win) => {//«
 
 const dist=(x1,y1,x2,y2)=>{return(Math.sqrt(Math.pow(x2-x1,2)+Math.pow(y2-y1,2)))};
 
-
 const detectSwipe=(el, callback)=>{//«
 	let touchsurface = el,
 	swipedir="none",
@@ -452,7 +450,6 @@ const gbid=id=>{return document.getElementById(id);};
 
 export const api = (()=>{
 
-
 const rand = (min,max)=>(Math.floor(Math.random()*(max-min+1))+min);
 const strToBuf=s=>{return blobToBuf(new Blob([s],{type:"text/plain"}));};
 const isStr=arg=>{return typeof arg==="string" || arg instanceof String;};
@@ -535,11 +532,7 @@ return basearr;
 uniq:arr=>{return arr.filter((value,index,array)=>{return array.indexOf(value)===index;});},
 extToApp: (arg) => {
 	let ext = arg.split(".").pop();
-	let num = EXT_TO_APP_MAP[ext.toLowerCase()];
-	if (!Number.isFinite(num)) return DEF_APP;
-	let got = APP_ARR[num];
-	if (got) return got;
-	return "Unknown";
+	return EXT_TO_APP_MAP[ext] || DEF_APP;
 },
 clipCopy:s=>{copyarea.value=s;copyarea.select();document.execCommand("copy");},
 setEnv:(k,v)=>{ENV[k]=v;},

@@ -931,32 +931,6 @@ stat_render(mess);
 
 
 };//»
-/*«
-const stop_macro_mode=()=>{
-	Core.set_macro_succ_cb(null);
-	Core.set_macro_rej_cb(null);
-	Core.set_macros(null);
-	Core.set_macro_update_cb(null); 
-	macro_mode = false;
-};
-const start_macro_mode = () =>{
-	macro_mode = true;
-	Core.reset_macro_vars(); 
-	Core.set_macro_update_cb(str=>{
-		stat_render(str);
-	}); 
-	Core.set_macro_succ_cb(obj=>{
-		stop_macro_mode();
-console.log(obj);
-		stat_render("Run macro: '"+obj.n+"'!");
-	});
-	Core.set_macro_rej_cb(_=>{
-		stop_macro_mode();
-		stat_render("No macro found!");
-	});
-	Core.set_macros(macros);
-}
-»*/
 termobj.onescape=()=>{//«
 	if (cur_escape_handler){
 		cur_escape_handler();
@@ -4488,8 +4462,6 @@ if (!com) {
 	return;
 }
 
-//Core.save_shell_com(com, "vc");//Vim Command
-
 this.command_history.unshift(com);
 let marr;
 if (marr = com.match(/^(%)?s\/(.*)$/)){
@@ -4555,7 +4527,6 @@ else stat_err("Unknown command: " + com);
 }//»
 else if (mode=="/"||mode=="?"){//«
 	if (!com) return render({},88);
-//	Core.save_shell_com(com, "vs"); //Vim Search
 	this.search_history.unshift(com);
 	scroll_search_str = com;
 	scroll_search_dir=mode;
@@ -4578,7 +4549,7 @@ else{
 };//»
 const download = (str, which) => {
 	stat_render("Fold error detected,downloading core...");
-	Core.api.download(str, "VIMDUMP.json");
+//	Core.api.download(str, "VIMDUMP.json");
 };
 
 //»

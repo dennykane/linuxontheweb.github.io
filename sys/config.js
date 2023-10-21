@@ -79,6 +79,7 @@ const MEDIA_APP = "dev.VideoCutter";
 const DEF_APP = "BinView";
 const HTML_APP = "dev.HTML";
 const TEXT_EDITOR_APP = "TextEdit";
+
 const DEF_BIN_OPENER = "BinView";
 const FOLDER_APP = "Folder";
 const TEXT_APP = "util.TextView";
@@ -87,42 +88,34 @@ const WRITING_APPS = [
 ];
 const VIEWONLY_APPS=[];
 
-const APP_ARR=[//«
-	"Application",
-	TEXT_EDITOR_APP,
-	IMAGE_APP,
-	MEDIA_APP,
-	HTML_APP,
-	"games.Arcade"
-//	"dev.Noisecraft",
-//	"three.Loader",
-//	"three.GLTF",
-//	"three.FBX"
-];//»
-
 //File extensions/Unicode icons«
 //Extension points to the array position above
+let TEA = TEXT_EDITOR_APP;
+let IA = IMAGE_APP;
+let MA = MEDIA_APP;
+let AA = "games.Arcade";
 const EXT_TO_APP_MAP={//«
-	app:0,
-    txt:1,
-    js:1,
-    json:1,
-	jpg:2,
-	png:2,
-	gif:2,
-	webp:2,
-	webm:3,
-	mp4:3,
-	m4a:3,
-	ogg:3,
-	mp3:3,
-	html:4,
-	nes: 5,
-	gb: 5
+	app:"Application",
+    txt:TEA,
+    js:TEA,
+    json:TEA,
+	jpg:IA,
+	png:IA,
+	gif:IA,
+	webp:IA,
+	webm:MA,
+	mp4:MA,
+	m4a:MA,
+	ogg:MA,
+	mp3:MA,
+	html:HTML_APP,
+	nes: AA,
+	gb: AA
 //	ncft:5,
 //	glb: 6,
 //	fbx: 6
-};//»
+};
+//»
 for (let k in EXT_TO_APP_MAP) ALL_EXTENSIONS.push(k);
 const ALL_EXTENSIONS_RE= new RegExp("^(.+)\\.(" + ALL_EXTENSIONS.join("|") + ")$");
 
@@ -212,7 +205,6 @@ export const globals = {//«
 	HOME_PATH,
 	DESK_PATH,
 
-	APP_ARR,
 	DEF_APP,	
 	FOLDER_APP,
 	TEXT_APP,

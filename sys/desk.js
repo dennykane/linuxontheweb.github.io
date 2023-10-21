@@ -8087,27 +8087,6 @@ const noprop=e=>{e.stopPropagation()}
 const nopropdef=e=>{e.preventDefault();e.stopPropagation()}
 const no_select=(elm)=>{elm.style.userSelect="none"}
 
-/*
-const delete_all_blobs=async()=>{//«
-	if (!globals.is_local) {
-		popup("Not deleting blob storage");
-		return;
-	}
-	let ret = await popyesno(`Delete ALL BLOBS IN STORAGE`,{reverse: true});
-	if (!ret) return;
-	await fsapi.clearStorage();
-	popok("Blobs cleared");
-};//»
-const ext_to_app = ext => {//«
-	if (!ext) return DEF_BIN_OPENER;
-	let num = globals.EXT_TO_APP_MAP[ext];
-	if (typeof num == "number" && globals.APP_ARR[num]) {
-		return globals.APP_ARR[num];
-	}
-	return "Unknown";
-}//»
-*/
-
 //»
 
 //Init«
