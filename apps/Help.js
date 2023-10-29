@@ -25,6 +25,9 @@ Append a css color "flag" to the url. If it is a hex value, it should be 3 or 6 
 <hr>
 <h2>Keyboard shortcuts</h2>
 <hr>
+<h3>Show the desktop: Alt+d</h3>
+<p>This toggles between the desktop states such that the windows are either visible or hidden.
+<hr>
 <h3>Toggling taskbar hiding: Alt+b</h3>
 <p>When the taskbar is hidden, it will "unhide" when the mouse is within a certain threshold of
 the bottom of the screen (currently about 30 pixels).
@@ -38,11 +41,16 @@ cycle between the workspaces.
 of the "current" element (window or icon) should be opened.
 <hr>
 <h3>Toggling the icon cursor: c</h3>
-<p>If either a folder is in focus or no windows are in focus (effectively giving the desktop the focus),
-then a "cursor" to be used for the selection of icons will be shown or hidden. Using the cursor allows 
-for selected icons to be opened or to be moved in the desktop environment via the keyboard. The arrow 
-keys will move the cursor. Whatever icon 
-is indicated by the cursor will be called "the current icon."
+
+<p>
+
+If either a folder is in focus or no windows are in focus (effectively giving
+the desktop the focus), then a "cursor" to be used for various icon operations
+will be toggled (it will be shown or hidden). Using the cursor allows for
+selecting icons, and for selected icons to be opened or to be moved in the
+desktop environment via the keyboard. The arrow keys will move the cursor.
+Whatever icon is indicated by the cursor will be called "the current icon."
+
 <hr>
 
 <h3>Opening icons: Enter</h3>
@@ -58,7 +66,7 @@ moved away from it.
 <hr>
 <h3>Selecting all icons: Ctrl+a</h3>
 <p>
-If the desktop or a folder window is active, all of the icons will be selected.
+If the desktop or a folder window is active, all of the relevant icons will be selected.
 <hr>
 <h3>Moving selected icons: m</h3>
 <p>All selected icons may be moved between folders by pressing 'm'. Desktop icons may also be moved 
@@ -81,12 +89,15 @@ within the browser's available dimensions (window.innerWidth x window.innerHeigh
 This shortcut toggles the fullscreen status.
 <hr>
 <h3>Maximizing windows: Alt+m</h3>
-<p>This does the same thing as fullscreening, except the application's titlebar and footer remain
-visible. This shortcut toggles the maximization status.
+
+<p>This does the same thing as fullscreening, except the application's titlebar
+and footer remain visible. Also, the taskbar will still remain showing (as long
+as it isn't being auto-hidden). This shortcut toggles the maximization status.
+
 <hr>
 <h3>Minimizing windows: Alt+n</h3>
 <p>The window is sent to the taskbar. It can be brought back into focus either by clicking
-the iconified window or by using the 'Window cycling' shortcut.
+the iconified window or by cycling the window stack with the appropriate keyboard shortcut.
 <hr>
 <h3>Closing windows: Alt+x</h3>
 <p>The window is "killed." If the window's application defines an 'onkill' method, it
@@ -115,7 +126,10 @@ Ctrl+Alt+Shift+t.
 <h3>Cycling the window stack: Alt+\x60</h3>
 <p>Since your OS probably already uses Alt+Tab to cycle through windows, LOTW uses
 Alt+\x60 (the tilde key, above the Tab key). This cycles through the windows
-in the current workspace.
+in the current workspace. The full desktop will always be made visible during any given cycle
+(the windows can be brought back into view via the "Show the desktop" shortcut).
+ 
+
 <hr>
 
 <h3>Reloading windows: Alt+r</h3>
@@ -167,6 +181,17 @@ Scripts are not aborted due to errors.
 although previous versions have supported them (and should not be too difficult to 
 re-implement).
 
+<hr>
+
+<h3>Editing files</h3>
+
+<p>
+
+Advanced users might be interested in LOTW's (javascript) implementation of the
+vim editor. While there seem to be some versions of "real" vim floating around
+the web (especially WASM builds), the potential use cases of such a thing in
+LOTW do not currently seem very overwhelming due to the difficulties inherent
+in modifying the C source code and fully integrating it into the web platform.
 
 <hr>
 
@@ -190,6 +215,28 @@ project.
 </div>
 `;
 
+this.onkeydown=(e, s)=>{
+if (s=="UP_"){
+main.scrollTop-=35;
+}
+else if (s=="DOWN_"){
+main.scrollTop+=35;
+}
+else if (s=="PGUP_"){
+main.scrollTop-=(main.clientHeight-15);
+}
+else if (s=="PGDOWN_"){
+main.scrollTop+=(main.clientHeight-15);
+}
+else if (s=="HOME_"){
+main.scrollTop=0;
+}
+else if (s=="END_"){
+main.scrollTop=main.scrollHeight;
+}
+
+
+};
 
 }
 
