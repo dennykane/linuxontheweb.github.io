@@ -1308,6 +1308,7 @@ this.show=(if_temp)=>{//«
 	}
 };//»
 this.toggle_expert_mode = ()=>{//«
+	if (!(globals.is_local||qObj.expert)) return;
 	if (taskbar_expert_mode){
 		taskbar_expert_mode = false;
 		delete localStorage[lst_expert];
