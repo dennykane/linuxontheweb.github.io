@@ -187,7 +187,12 @@ observer = new IntersectionObserver((ents)=>{
 		if (ent.isIntersecting) {
 			if (!d.showing) d.show();
 		}
-		else if (!(d.icon && d.icon.isOn)) d.hide();
+		else if (!(d.icon && d.icon.isOn)) {
+			d.hide();
+			if (d.icon && d.icon.win){
+				delete d.icon.win.icon;
+			}
+		}
 	});
 }, options);
 
@@ -205,7 +210,7 @@ cwarn("Not found in kids: "+ kid.dataset.name);
 		}
 		let icn = new Icon(got, kid, observer);
 		if (got.filesaver_cb) got.filesaver_cb(icn);
-		icn._pos="relative";
+//		icn._pos="relative";
 		icn.parWin = topwin;
 		kid.showing = true;
 //		kid.icon = icn;
@@ -310,7 +315,10 @@ if (path) poperr(`Directory not found: ${path}`);
 else cwarn("Opening in 'app mode'");
 		return;
 	}
-
+if (dir.fullpath=="/mnt"){
+await fs.mountDir("www");
+}
+//log(dir);
 //Show a loading message in the Main window of the Folder app: //«
 //In apps/sys/Folder.js->init
     if (!dir.done){

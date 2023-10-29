@@ -505,6 +505,11 @@ const video_init = async ()=>{//«
 	}
 	update_all();
 };//»
+
+/*
+Want this to be a library function that returns the positions of:
+cues, info, and tracks
+*/
 const webm_prep = async()=>{//«
 
 let ebml, tracks;

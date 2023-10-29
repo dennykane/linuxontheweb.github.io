@@ -1,3 +1,15 @@
+/*«Late October 2023: Adding 9 workspaces
+Toggle between workspaces with Ctrl+Alt+Shift+[1-9]
+If an icon is being opened (double-clicked) that already has an associated window in another
+workspace, then we will either need to:
+1) move the window to the current workspace (this is what we are doing)
+2) unlink the relationship with the associated window and open a new window
+3) switch to the other workspace
+
+Need to make sure that all of the windows in all of the workspaces are updated for the various
+updating operations
+
+»*/
 /*«
 
 NEED TO BE ON THE LOOK OUT FOR EVERY CSS VALUE THAT NEEDS TO BE IN
@@ -45,8 +57,6 @@ This was fixed @EMKIOFDPM (by checking for the existence of the .win property on
 NO_MOVE_ICONS, and then setting the .icon property of the .win property to the given icon).
 
 »*/
-//«
-
 /*«Test for tiling mode
 (async()=>{
 
@@ -60,18 +70,15 @@ let vals=[
 //	[368, 156, 889, 525],
 //	[518, 206, 15, 475]
 ];
-if (tiling_mode) return;
-if (layout_mode) toggle_layout_mode();
+if (windows.tiling_mode) return;
+if (windows.layout_mode) toggle_layout_mode();
 for (let v of vals){
 open_app(v[4]||TERMINAL_APP, {force: true, winArgs: {X:v[2],Y:v[3],WID:v[0]-subw,HGT:v[1]-subh}});
 }
 toggle_layout_mode();
 toggle_tiling_mode();
 })();
-
 »*/
-
-//»
 
 //Imports«
 
@@ -97,15 +104,13 @@ const{
 	IMAGE_APP,
 	MEDIA_APP,
 
-	APPICONS,
 	VIEWONLY_APPS,
 	TEXT_EXTENSIONS,
 	MEDIA_EXTENSIONS,
 	IMAGE_EXTENSIONS,
-	ALL_EXTENSIONS,
 	ALL_EXTENSIONS_RE,
 	TEXT_EDITOR_APP,
-	DEF_BIN_OPENER,
+	DEF_BIN_APP,
 	WRITING_APPS,
 
 	ABOUT_STR,
@@ -140,8 +145,8 @@ let show_desktop_during_win_cycle = true;
 let win_cycle_wins_hidden = false;
 //let folders_open_in_same_window = false;
 let folders_open_in_same_window = true;
-let tiling_mode = false;
-let layout_mode = false;
+//let tiling_mode = false;
+//let layout_mode = false;
 //let DEF_NO_DELETE_ICONS = true;
 let DEF_NO_DELETE_ICONS = false;
 let PREV_DEF_ALL_KEYS = false;
@@ -161,7 +166,46 @@ let window_chrome_mode = true;
 let alt_is_up=false;
 
 //»
+//Timers/Counters/Numbers/Amounts«
+
+let current_workspace_num = 0;
+let num_workspaces = 9;
+
+let overlay_timer;
+let num_minimized_wins=0;
+let nowindow_pos;
+let num_tiled_wins;
+let MAX_TILED_WINS_FOR_RESIZING=4;
+let win_num = 0;
+let icon_num = 0;
+let VERNUM=1;
+let OVERLAY_MS = 1500;
+let WIN_MIN_TRANS_SECS="0.25";
+let TASKBAR_TRANS_SECS = 0.125;
+
+let MS_BETWEEN_BIG_FOLDER_BATCHES = 0;
+let BIG_FOLDER_BATCH_SIZE = 1000;
+let MAX_FILE_SIZE = 1024*1024;
+let SHOW_TASKBAR_DELAY = 250;
+let num_win_cycles = 0;
+const RS_TIMEOUT = 300;
+let rs_timer = null;
+let taskbar_timer;
+let alt_tab_presses = 1;
+let tilde_press = 0;
+
+//»
 //DOM Elements/Objects/Arrays«
+
+let workspaces = [];
+for (let i = current_workspace_num; i < num_workspaces; i++ ){
+	let wins = [];
+	wins.layout_mode = false;
+	wins.tiling_mode = false;
+	workspaces.push(wins);
+}
+let windows = workspaces[current_workspace_num];
+
 let CPR;
 let CWIN;
 let taskbar;
@@ -172,6 +216,7 @@ const desk_coldiv=mkdv();
 const desk_imgdiv=mkdv();
 //const taskbar = mkdv();
 const start_button=mkdv();
+const workspace_num_div=mkdv();
 const tiling_underlay = mkdv();
 //const minwinbar = mkdv();
 
@@ -190,7 +235,7 @@ let CRWINS;
 CDW = CDICN = CRW = CEDICN = null;
 let DDD;
 let CG;
-let windows = [];
+//let windows = [];
 
 //»
 //String/Regex constants/vars«
@@ -258,6 +303,7 @@ const SAVEAS_BOTTOM_HGT = 30;
 
 let APP_BG_COL = "#271313";
 
+const TASKBAR_HGT = 26;
 const TASK_BAR_COL_RGB="8,8,24";
 //let DEF_DESK_GRADIENT = "linear-gradient(135deg,#000 0%,#003 50%,#006 75%,#000077 87%,#33c 100%)";
 //let DEF_DESK_GRADIENT = DESK_GRADIENT;
@@ -362,32 +408,6 @@ let	ev = null;
 let DDIE, WDIE, DDX, DDY;
 let drag_timeout;
 DDIE=WDIE=DDX=DDY=null;
-
-//»
-//Timers/Counters/Numbers/Amounts«
-
-let overlay_timer;
-let num_minimized_wins=0;
-let nowindow_pos;
-let num_tiled_wins;
-let MAX_TILED_WINS_FOR_RESIZING=4;
-let win_num = 0;
-let icon_num = 0;
-let VERNUM=1;
-let OVERLAY_MS = 1500;
-let WIN_MIN_TRANS_SECS="0.25";
-let TASKBAR_TRANS_SECS = 0.125;
-
-let MS_BETWEEN_BIG_FOLDER_BATCHES = 0;
-let BIG_FOLDER_BATCH_SIZE = 1000;
-let MAX_FILE_SIZE = 1024*1024;
-let SHOW_TASKBAR_DELAY = 250;
-let num_win_cycles = 0;
-const RS_TIMEOUT = 300;
-let rs_timer = null;
-let taskbar_timer;
-let alt_tab_presses = 1;
-let tilde_press = 0;
 
 //»
 //Protos/Props«
@@ -612,15 +632,51 @@ const DESK_CONTEXT_MENU=[
 		"Text File",
 		()=>{make_new_icon(desk, "Text")}
 	],
-	"\u{1f4c1}\xa0\xa0Explorer\xa0(Alt+e)",open_home_folder,
-	"\u{1f5b3}\u{2009}\xa0Terminal\xa0(Alt+t)",()=>{open_terminal()},
+	"\u{1f4c1}\xa0\xa0Explorer::Alt+e",open_home_folder,
+	"\u{1f5b3}\u{2009}\xa0Terminal::Alt+t",()=>{open_terminal()},
 	"\u{1f4ca}\xa0\xa0About",()=>{make_popup({WIDE:true,STR: ABOUT_STR, TIT: "About"});},
+
+//"XMark\xa0Test __XMARK__",()=>{log(12345)},
+//"Check\xa0Test __CHECK__",()=>{log(12345)}
 
 ];
 //»
 
 //Desktop«
 
+const switch_to_workspace = (num, if_force) => {//«
+
+if (!if_force && num == current_workspace_num){
+	cwarn("ALREADY ON IT");
+	return;
+}
+
+
+for (let w of windows){
+	if (!w.is_minimized) w.winElem._dis="none";//was block
+	else {
+		w.taskbar_button._dis="none";//was flex
+	}
+}
+if (windows.tiling_mode) tiling_underlay.off();
+//if (windows)
+if (CWIN) CWIN.off();
+icon_array_off();
+current_workspace_num = num;
+windows = workspaces[current_workspace_num];
+if (windows.tiling_mode) tiling_underlay.on();
+for (let w of windows){
+	if (!w.is_minimized) w.winElem._dis="block";
+	else w.taskbar_button._dis="flex";
+}
+set_workspace_num(current_workspace_num);
+top_win_on();
+
+};//»
+const set_workspace_num = which => {//«
+	workspace_num_div.innerHTML=`${which+1}`;
+	workspace_num_div.title = `Current workspace: ${which+1}\nTo switch, use shortcut\nCtrl+Alt+Shift+[1-${num_workspaces}]`;
+};//»
 const fit_desktop = ()=>{//«
 	let _h = winh(true)+1;
 	let _w = winw()+1;
@@ -1126,6 +1182,323 @@ const make_desktop = () => {//«
 }//»
 
 //»
+//Taskbar«
+
+const Taskbar = function(){
+
+//DOM«
+
+let bar = mkdv();//«
+this.taskbarElem=bar;
+bar.style.justifyContent="space-between";
+bar.style.userSelect="none";
+bar.onmousedown=noprop;
+bar._padt=3;
+bar._padb=1;
+bar._h=TASKBAR_HGT;
+if (qObj.nobar) bar._dis="none";
+else bar._dis="flex";
+bar._pos="fixed";
+bar._b=0;
+bar._w="100%";
+bar._op=0;
+bar._z=MIN_WIN_Z-1;
+bar._bgcol=TASKBAR_BG_COL;
+
+if (globals.isFox) bar._bor=TASKBAR_BOR_FOX;
+else bar._bor=TASKBAR_BOR;
+
+bar.id="taskbar";
+//»
+let mwb = mkdv();//«
+mwb._marr=mwb._marl=3;
+mwb._dis="flex";
+//»
+let st = start_button;//«
+//st._padt=st._padb=3;
+st._padr=st._padl=5;
+//st._bgcol="#222";
+
+st._tcol="#999";
+st._ff="arial";
+st._dis="flex";
+st.style.alignItems="center";
+st.style.justifyContent="center";
+st._fs=16;
+//st.innerText="\u{1f30e}\u{202f}Begin";
+st.innerText="\u{1f463}\u{202f}Begin";
+st._bor=`${TASKBAR_BOR_WID} outset ${TASKBAR_BOR_COL}`;
+//»
+let wn = workspace_num_div;//«
+wn._marr = wn._marl = 3;
+wn._dis="flex";
+wn.style.justifyContent="center";
+wn.style.alignItems = "center";
+wn._fs = 18;
+wn._bor="1px dotted #aaa";
+wn._tcol="#aaa";
+wn._fw = "bold";
+wn.style.cssFloat="right";
+wn._ta="center";
+wn._w=TASKBAR_HGT;
+set_workspace_num(current_workspace_num);
+//»
+
+//»
+
+//Methods«
+
+this.hide=(if_temp)=>{//«
+	bar._z = CG_Z-1;
+	bar._b = -bar._gbcr().height;
+	if (if_temp) return;
+	taskbar_hidden=true;
+	if (!globals.read_only) localStorage[lst_hidden]="true";
+};//»
+this.show=(if_temp)=>{//«
+	bar._b=0;
+	if (if_temp) {
+		bar._z=CG_Z+2;
+		return;
+	}
+	bar._z=MIN_WIN_Z-1;
+	taskbar_hidden=false;
+	if (!globals.read_only){
+		delete localStorage[lst_hidden];
+	}
+};//»
+this.toggle_expert_mode = ()=>{//«
+	if (taskbar_expert_mode){
+		taskbar_expert_mode = false;
+		delete localStorage[lst_expert];
+		st._dis="";
+	}
+	else{
+		taskbar_expert_mode = true;
+		localStorage[lst_expert]="true";
+		st._dis="none";
+	}
+}//»
+this.addwin=(w)=>{//«
+	const dounmin=(if_instant)=>{//«
+		w.winElem._dis="";
+		let rect = d._gbcr();
+		d._del();
+		const done=()=>{//«
+			delete w.is_minimized;
+			delete w.taskbar_button;
+			w.winElem._op=1;
+			num_minimized_wins--;
+			delete w.unminimize;
+			if (w===CWIN) CWIN=null;
+			w.check_loc();
+			w.check_size();
+			w.on();
+		}//»
+		if (if_instant) return done();
+		w.winElem._op=0;
+		let t = mkdv();
+		t._pos="fixed";
+		t._w=rect.width;
+		t._h=rect.height;
+		t._loc(rect.left,rect.top);
+		t._bor="1px solid #ccc";
+		t._z=CG_Z-1;
+		desk._add(t);
+		rect = w.winElem._gbcr();
+		t.style.transition = `transform ${WIN_MIN_TRANS_SECS}s ease 0s, left ${WIN_MIN_TRANS_SECS}s ease 0s, top ${WIN_MIN_TRANS_SECS}s ease 0s, width ${WIN_MIN_TRANS_SECS}s ease 0s`;
+		requestAnimationFrame(()=>{
+			t.ontransitionend=()=>{
+				w.winElem._op=1;
+				t._del();
+				done();
+			};
+			t._loc(rect.left, rect.top);
+			t._w=rect.width;
+			t._h=rect.height;
+		});
+	};//»
+	let max_wid = "300px";
+
+	let rect = w.winElem._gbcr();
+	let t = mkdv();
+	t._pos="fixed";
+	t._w=rect.width;
+	t._h=rect.height;
+	t._loc(rect.left,rect.top);
+	t._bor="1px solid #ccc";
+	t._z=CG_Z-1;
+	t.style.transition = `transform ${WIN_MIN_TRANS_SECS}s ease 0s, left ${WIN_MIN_TRANS_SECS}s ease 0s, top ${WIN_MIN_TRANS_SECS}s ease 0s, width ${WIN_MIN_TRANS_SECS}s ease 0s`;
+	requestAnimationFrame(()=>{
+		let c = mwb.lastChild;
+		let x = c._gbcr().left;
+		let wid = c._gbcr().width;
+		t.ontransitionend=()=>{
+			d._op=1;
+			t._del();
+		};
+		t._loc(x, winh());
+		t._w=wid;
+	});
+
+	desk._add(t);
+
+	w.winElem._dis="none";
+	w.is_minimized=true;
+	w.winElem._op = MIN_WIN_OP;
+	num_minimized_wins++;
+	w.winElem._z= MIN_WIN_Z;
+	let d = mkdv();
+	d.style.flexShrink=1;
+	d._op=0;
+	d.style.flexBasis=max_wid;
+	d._padt=d._padb=1;
+	d._padl=d._padr=5;
+	d._marr=d._marl=1.5
+	d.style.maxWidth=max_wid;
+	d._fs=15;
+	d._dis="flex";
+	d._pos="relative";
+	d._tcol="#999";
+	d._bor=`${TASKBAR_BOR_WID} outset ${TASKBAR_BOR_COL}`;
+	d._over="hidden";
+
+	let imdiv = w.img_div.cloneNode(true);
+	imdiv._marr=5;
+	imdiv._pos="";
+	d._add(imdiv);
+	let titstr = w.title;
+
+	let tit = mkdv();
+	tit._w="100%";
+	tit.innerText=titstr;
+	w.mintitle = tit;
+	d._add(tit);
+	let fdv = mkdv();
+	fdv._pos="absolute";
+	fdv._loc(0,0);
+	fdv._w="100%";
+	fdv._h="100%";
+	fdv.style.backgroundImage=MIN_WIN_LIN_GRAD;
+	d._add(fdv);
+	d.onmousedown=(e)=>{
+		if (e&&e.button!==0) return;
+		d.is_active = true;
+		d._bor=`${TASKBAR_BOR_WID} inset ${TASKBAR_BOR_COL}`;
+	};
+	d.onmouseup=()=>{
+		d.is_active = false;
+		d._bor=`${TASKBAR_BOR_WID} outset ${TASKBAR_BOR_COL}`;
+	};
+	d.onmouseout=()=>{
+		d.is_active = false;
+		d._bor=`${TASKBAR_BOR_WID} outset ${TASKBAR_BOR_COL}`;
+	};
+
+	d.oncontextmenu=nopropdef;
+	d.onclick=()=>{dounmin()};
+	w.unminimize=(if_instant)=>{
+		if (if_instant) return dounmin(true);
+		d._bor=`${TASKBAR_BOR_WID} inset ${TASKBAR_BOR_COL}`;
+		setTimeout(() => {
+			dounmin();
+			d._bor = `${TASKBAR_BOR_WID} outset ${TASKBAR_BOR_COL}`;
+		}, 200);
+	};
+	w.taskbar_button=d;
+	mwb._add(d);
+	if (w===CWIN) {
+		CWIN=null;
+		top_win_on();
+	}
+};//»
+this.resize=()=>{mwb._w=winw()};
+//»
+
+//Listeners«
+bar.oncontextmenu=e=>{//«
+	e.preventDefault();
+	e.stopPropagation();
+
+	CWIN&&CWIN.off();
+
+	let items_arr=[];
+	if (taskbar_hidden){
+		items_arr.push("Show\x20Taskbar");
+		items_arr.push(()=>{
+			this.show();
+		});
+	}
+	else{
+		items_arr.push("Hide\x20Taskbar");
+		items_arr.push(()=>{
+			this.hide();
+		});
+	}
+	if (taskbar_expert_mode){
+		items_arr.push("Expert\x20Mode __CHECK__");
+		items_arr.push(taskbar.toggle_expert_mode);
+	}
+	else{
+		items_arr.push("Expert\x20Mode __XMARK__");
+		items_arr.push(taskbar.toggle_expert_mode);
+	}
+
+	set_context_menu({
+		X: e.clientX,
+		Y: e.clientY
+	}, {items: items_arr});
+
+}//»
+bar.onmouseleave=()=>{//«
+	if (taskbar_hidden){
+		this.hide();
+	}
+}//»
+bar.onmousemove=noprop;
+st.onmousedown = (e) => {
+	if (e.button !== 0) return;
+	st._bor = `${TASKBAR_BOR_WID} inset ${TASKBAR_BOR_COL}`;
+//log(st);
+};
+st.onmouseup=()=>{st._bor=`${TASKBAR_BOR_WID} outset ${TASKBAR_BOR_COL}`;};
+st.onmouseout=()=>{st._bor=`${TASKBAR_BOR_WID} outset ${TASKBAR_BOR_COL}`;};
+st.oncontextmenu=nopropdef;
+st.onclick=(e)=>{//«
+	const doit=()=>{set_context_menu({X:0,Y:bar.clientHeight+5},{BREL:true});}
+	if (e.isTrusted) return doit();
+	st._bor=`${TASKBAR_BOR_WID} inset ${TASKBAR_BOR_COL}`;
+	setTimeout(()=>{st._bor=`${TASKBAR_BOR_WID} outset ${TASKBAR_BOR_COL}`;doit();},200);
+};//»
+//»
+
+//Init«
+
+let curuser = globals.current_user;
+let lst_hidden = `taskbar_hidden:${curuser}`;
+let lst_expert = `taskbar_expert:${curuser}`;
+
+taskbar_hidden = localStorage[lst_hidden];
+taskbar_expert_mode = localStorage[lst_expert];
+
+if (taskbar_hidden) this.hide();
+if (taskbar_expert_mode) st._dis="none";
+
+bar._add(st);
+bar._add(mwb);
+bar._add(wn);
+
+if (!isMobile) desk._add(bar);
+
+setTimeout(()=>{
+	bar.style.transition = `bottom ${TASKBAR_TRANS_SECS}s ease 0s`;
+},500);
+
+//»
+
+};
+
+//»
 //Icons«
 
 const Icon = function(node, elem, observer){//«
@@ -1158,7 +1531,7 @@ else if (node.link){
 }
 else if (node.appName) app = node.appName;
 else if (ext) app = capi.extToApp(ext.toLowerCase());
-if (!app) app = DEF_BIN_OPENER;
+if (!app) app = DEF_BIN_APP;
 
 if (app=="Application"&&node.ref&&node.ref.appicon){
 	try{linkapp=JSON.parse(node.ref.appicon).app;}
@@ -1181,7 +1554,6 @@ label.title = name;
 //»
 
 //Listeners«
-//log();
 if (node.appName !== FOLDER_APP) {//«
 	wrapper.ondragover=nopropdef;
 	wrapper.ondrop=e=>{
@@ -1329,7 +1701,7 @@ let menu = [//«
 }, 
 "Delete", () => {delete_selected_files(icn);}
 ];//»
-let open_opts=["Binary\xa0Viewer", ()=>{open_icon(icn,{useApp: DEF_BIN_OPENER});}];
+let open_opts=["Binary\xa0Viewer", ()=>{open_icon(icn,{useApp: DEF_BIN_APP});}];
 if (icn.appName !== FOLDER_APP){
 	if (TEXT_EXTENSIONS.includes(icn.ext)){
 		open_opts.unshift(()=>{open_icon(icn,{useApp:TEXT_EDITOR_APP});});
@@ -1353,12 +1725,12 @@ capi.detectClick(wrapper, 100,()=>{
 //»
 //Methods«
 
-if (observer) {
+if (observer) {//«
 	this.move_cb=()=>{
 		observer.unobserve(d);
 		delete this.move_cb;
 	};
-}
+}//»
 this.del=()=>{//«
 	if (!d.parentNode) return;
 	this.clear(null,1);
@@ -1371,9 +1743,11 @@ this.rename = namearg => {//«
 	let arr = getNameExt(namearg);
 	name = arr[0];
 	icn.ext = arr[1]||"";
+	d.dataset.name = namearg;
 	icn.name = name;
 	icn.label.innerText = name;
 	icn.label.title = name;
+
 	icn.off();
 	if (icn.appName == FOLDER_APP) return;
 	if (icn.ext.toLowerCase() != oldext.toLowerCase()) {
@@ -2202,6 +2576,7 @@ const switch_icons = () => {//«
 }//»
 
 const check_special_ext = node =>{//«
+	if (node.type !== FS_TYPE) return false;
 	let ext = node.ext;
 	if (MEDIA_EXTENSIONS.includes(ext.toLowerCase())) {
 		let url = capi.fsUrl(`/blobs/${node.blobId}`);
@@ -2236,24 +2611,32 @@ const open_icon = async(icn, opts={}) => {//«
 	let gotext = icn.ext;
 	if (gotext) fullpath = fullpath + "." + gotext;
 	if (!icn.win){
-		for (let w of windows){
-			if (!w.icon && w.fullpath===fullpath){
-				icn.win = w;
-				w.icon = icn;
-				break;
+		OUTERLOOP: for (let wins of workspaces) {
+			for (let w of wins){
+				if (!w.icon && w.fullpath===fullpath){
+					icn.win = w;
+					w.icon = icn;
+					break OUTERLOOP;
+				}
 			}
 		}
 	}
 	if (!(!icn.win || force || (e && e.ctrlKey))) {//«
-		if (icn.win.is_minimized) {
-			if (icn.win.winElem.parentNode !== desk) {
+		let w = icn.win;
+		if (w.workspace_num !== current_workspace_num){
+			if (!switch_win_to_workspace(w, current_workspace_num)) return;
+			if (w.taskbar_button) w.taskbar_button._dis="flex";
+			else w.winElem._dis="block";
+		}
+		if (w.is_minimized) {
+			if (w.winElem.parentNode !== desk) {
 cerr("Where is the minimized window?");
 				return;
 			}
-			icn.win.unminimize();
+			w.unminimize();
 		}
 		else{
-			icn.win.on();
+			w.on();
 		}
 		return;
 	}//»
@@ -2274,15 +2657,15 @@ cerr("Where is the minimized window?");
 
 	let link = icn.link;
 	let node = await pathToNode(fullpath);
-	let roottype = node.type;
+	let typ = node.type;
 
-	const OK_TYPES=[FS_TYPE,"local"];
-	if (!OK_TYPES.includes(roottype)) return poperr(`Cannot open type: ${roottype}`);
+	const OK_TYPES=[FS_TYPE,"loc"];
+	if (!OK_TYPES.includes(typ)) return poperr(`Cannot open type: ${typ}`);
 
 	if (check_special_ext(node)) return;
 	
-	if (roottype==FS_TYPE&&!fs.check_fs_dir_perm(node)) return noopen("permission denied");
-	let ret = await fsapi.readFile(fullpath, {binary: true});
+	if (typ==FS_TYPE&&!fs.check_fs_dir_perm(node)) return noopen("permission denied");
+	let ret = await node.bytes;
 	if (!ret) return noopen();
 	icn.node = node;
 	open_icon_app(icn, ret, gotext, useApp, force);
@@ -2427,17 +2810,17 @@ const save_icon_editing = async() => {//«
 		if (newname){
 			newnameext = newname;
 			if (oldext) newnameext=`${newname}.${oldext}`;
-		}
-		if (newnameext) {
 			update_all_paths(oldpath, `${CEDICN.path}/${newnameext}`);
 			CEDICN.set_window_name(newname);
+			CEDICN.rename(newnameext);
 		}
-		else newname = oldname;
-		CEDICN.name = newname;
-		CEDICN.label.innerText = newname;
-		CEDICN.label.title = newname;
+		else {
+			CEDICN.label.innerText = oldname;
+//			CEDICN.name = oldname;
+//			CEDICN.label.title = oldname;
+		}
 		CEDICN.dblclick = null;
-		CEDICN.off();
+//		CEDICN.off();
 		if (CEDICN._savetext||CEDICN._savetext==="") {
 //			let rv = await fsapi.writeFile(CEDICN.fullpath(), CEDICN._savetext);
 			let rv = await fsapi.writeFile(CEDICN.fullpath, CEDICN._savetext, {noMakeIcon: true });
@@ -2450,8 +2833,7 @@ const save_icon_editing = async() => {//«
 			CEDICN._editcb(CEDICN);
 			CEDICN._editcb = null;
 		}
-		CEDICN.clear(oldpath,2);
-		CEDICN.save();
+//		CEDICN.save();
 		if (CEDICN.parentNode===desk && !windows_showing) toggle_show_windows();
 		CEDICN = null;
 		CG.off();
@@ -2559,26 +2941,28 @@ const update_all_paths = (oldpath, newpath) => {//«
 	oldpath = oldpath.regpath();
 	newpath = newpath.regpath();
 	let re = new RegExp("^" + oldpath + "/");
-	for (let w of windows) {
-		if (w.fullpath === oldpath) {
-			let newarr = newpath.split("/");
-			let fname = newarr.pop();
-			let ext = "";
-			if (app_has_ext(w.appName)) {
-				let marr = getNameExt(fname);
-				fname = marr[0];
-				ext = marr[1];
-			}
-			w.name = fname;
-			w.ext = ext;
-			w.title = fname;
-			w.path = newarr.join("/");
-			if (w.appName===FOLDER_APP) w.app.reload(`${w.path}/${fname}`);
-		} 
-		else {
-			let gotpath = w.path;
-			if (gotpath == oldpath || re.exec(gotpath)) {
-				replacepath(w, oldpath, newpath);
+	for (let wins of workspaces) {
+		for (let w of wins) {
+			if (w.fullpath === oldpath) {
+				let newarr = newpath.split("/");
+				let fname = newarr.pop();
+				let ext = "";
+				if (app_has_ext(w.appName)) {
+					let marr = getNameExt(fname);
+					fname = marr[0];
+					ext = marr[1];
+				}
+				w.name = fname;
+				w.ext = ext;
+				w.title = fname;
+				w.path = newarr.join("/");
+				if (w.appName===FOLDER_APP) w.app.reload(`${w.path}/${fname}`);
+			} 
+			else {
+				let gotpath = w.path;
+				if (gotpath == oldpath || re.exec(gotpath)) {
+					replacepath(w, oldpath, newpath);
+				}
 			}
 		}
 	}
@@ -2779,7 +3163,7 @@ const delete_selected_files = async which => {//«
 		if (usewin!==desk){
 			usewin.app.reload();
 			if (CUR.main) delete CUR.main.lasticon;
-			CUR.set();
+			CUR.set(1);
 		}
 		if (errors.length) poperr(errors.join("<br>"), {wide: true});
 	}
@@ -2977,10 +3361,12 @@ const Window = function(arg){//«
 		if (this.no_events) return;
 		if (this.nobuttons && !force) return;
 		if (this.app.onkill) this.app.onkill(if_dev_reload, force);
-		for (let i = 0; i < windows.length; i++) {
-			if (windows[i] == this) {
-				windows.splice(i, 1);
-				break;
+		OUTERLOOP2: for (let wins of workspaces) {
+			for (let i = 0; i < wins.length; i++) {
+				if (wins[i] == this) {
+					wins.splice(i, 1);
+					break OUTERLOOP2;
+				}
 			}
 		}
 		if (is_folder) icon_array_off(3);
@@ -3204,6 +3590,7 @@ Object.defineProperty(this, "title", {//«
 });//»
 
 	this.Desk = Desk;
+	this.workspace_num = current_workspace_num;
 	this.bottom_div = bottom_div;
 	this.status_bar = statdiv;
 	this.rs_div = rsdiv;
@@ -3251,7 +3638,7 @@ Object.defineProperty(this, "title", {//«
 			CWIN&&CWIN.off();
 		}
 		else {
-			if (CUR.parentNode === desk) {
+			if (CUR.curElem.parentNode === desk) {
 				desk.lastcurpos = CUR.getpos();
 				CUR.off();
 			}
@@ -3264,7 +3651,7 @@ Object.defineProperty(this, "title", {//«
 			CUR.main = this.main;
 			this.main._add(CUR.curElem);
 			this.cursor = CUR;
-			CUR.set();
+//			CUR.set(2);
 			CUR.on();
 		}
 		if (if_no_zup){}
@@ -3287,7 +3674,7 @@ Object.defineProperty(this, "title", {//«
 		else{
 	cwarn(`window_on(): NO WINOBJ for this`, this);
 		}
-		if (this.is_minimized) this._button.onmousedown();
+		if (this.is_minimized) this.taskbar_button.onmousedown();
 		if (CWIN.child_win) CWIN.child_win.on();
 
 	};
@@ -3311,7 +3698,7 @@ Object.defineProperty(this, "title", {//«
 		if (this.app && this.app.onblur) this.app.onblur();
 		if (this == CWIN) CWIN = null;
 		if (this.is_minimized) {
-			this._button.onmouseup();
+			this.taskbar_button.onmouseup();
 			this.winElem._dis="none";
 		}
 	};
@@ -3371,7 +3758,15 @@ Object.defineProperty(this, "title", {//«
 		}
 	}//»
 	this.check_size = () => {//«
-		if (main._w < min_win_width) main._w= min_win_width;
+
+		let wid = main._w;
+		if (wid < win.clientWidth){
+			main._w = win.clientWidth;
+		}
+		else if (wid < min_win_width) {
+			main._w = min_win_width;
+		}
+//		if (main._w < min_win_width) main._w= min_win_width;
 		else if (win._x + win.clientWidth > winw()) {
 			if (!win_overflow.right) main._w= winw() - win._x;
 		}
@@ -3838,7 +4233,6 @@ cwarn("No drop on main window");
 		DDY = e.clientY - pi(win.offsetTop);
 	};//»
 	main.oncontextmenu = e => {//«
-
 //		if (isMobile) return;
 		e.preventDefault();
 		e.stopPropagation();
@@ -3885,11 +4279,22 @@ cwarn("No drop on main window");
 	this.contextMenuOn = (e) => {
 		if (!this.app.get_context) return;
 		let items = this.app.get_context();
-		if (!(items&&items.length)) items=[
-			"Fake\xa0Choice",()=>{
-				popup("I'm fake");
+		if (!items) items = [];
+		items.push("Switch\xa0to\xa0workspace");
+		let choices = [];
+		for (let i=0; i < num_workspaces; i++){
+			if (i!=current_workspace_num){
+				choices.push(`${i+1}`);
+				choices.push(()=>{
+					if (windows.layout_mode) toggle_layout_mode();
+					switch_win_to_workspace(this, i);
+					this.off();
+					this.winElem._dis="none";
+					top_win_on();
+				});
 			}
-		];
+		}
+		items.push(choices);
 		CG.on();
 		let op_hold = img_div._op;
 		let usex,usey;
@@ -3899,16 +4304,17 @@ cwarn("No drop on main window");
 		}
 		else{
 			img_div._bgcol= "#fff";
+			img_div._tcol= "#000";
 			img_div._op=1;
 			let rect = win._gbcr();
 			usex = rect.left;
 			usey = rect.top+this.titlebar._h;
 		}
-//log(items);
 		set_context_menu({X:usex,Y:usey},{items: items});
 		desk_menu.kill_cb = () => {
 			img_div._op=op_hold;
 			img_div._bgcol= "";
+			img_div._tcol="#a7a7a7";
 			if (this.app&&this.app.onfocus) {
 				setTimeout(this.app.onfocus,50);
 			}
@@ -3956,17 +4362,18 @@ const get_wins_by_path = (path,opts={}) => {//«
 	let {getDesk, extArg}=opts;
 	let ret = [];
 	path = path.regpath();
-	for (let w of windows) {
-		let ext = w.ext;
-		let winpath = (w.path + "/" + w.name).regpath();
-		if (winpath !== path) continue;
-		if (extArg) {
-			if (ext === extArg) ret.push(w);
-		} else if (!ext) ret.push(w);
+	for (let wins of workspaces) {
+		for (let w of wins) {
+			let ext = w.ext;
+			let winpath = (w.path + "/" + w.name).regpath();
+			if (winpath !== path) continue;
+			if (extArg) {
+				if (ext === extArg) ret.push(w);
+			} else if (!ext) ret.push(w);
+		}
 	}
 	if (path === DESK_PATH && getDesk) ret.push(desk);
 	return ret;
-
 };
 api.getWinsByPath = get_wins_by_path;
 //»
@@ -4006,7 +4413,7 @@ const toggle_show_windows = (if_no_current) => {//«
 		CWIN && CWIN.off();
 		CWIN = null;
 		CUR.todesk();
-if (tiling_mode){
+if (windows.tiling_mode){
 tiling_underlay.off();
 }
 	} else {
@@ -4025,7 +4432,7 @@ tiling_underlay.off();
 			}
 		}
 		if (!CWIN && !if_no_current) top_win_on();
-if (tiling_mode){
+if (windows.tiling_mode){
 tiling_underlay.on();
 }
 	}
@@ -4041,11 +4448,11 @@ const toggle_layout_mode = () => {//«
 		}
 		if (!w.is_minimized) gotwins.push(w);
 	}
-	layout_mode = !layout_mode;
+	windows.layout_mode = !windows.layout_mode;
 	for (let w of gotwins){
-		if (layout_mode && w.is_layout) continue;
-		if (!layout_mode && !w.is_layout) continue;
-		w.toggle_layout(layout_mode);
+		if (windows.layout_mode && w.is_layout) continue;
+		if (!windows.layout_mode && !w.is_layout) continue;
+		w.toggle_layout(windows.layout_mode);
 	}
 	return true;
 };//»
@@ -4160,7 +4567,7 @@ const toggle_tiling_mode = () => {//«
 	}//»
 	if (has_tile_holds) {
 		window_boxshadow = window_boxshadow_hold;
-		tiling_mode = false;
+		windows.tiling_mode = false;
 		tiling_underlay.off();
 		return;
 	}
@@ -4223,7 +4630,7 @@ const toggle_tiling_mode = () => {//«
 	}//»
 	window_boxshadow_hold = window_boxshadow;
 	window_boxshadow = "";
-	tiling_mode = true;
+	windows.tiling_mode = true;
 	tiling_underlay.on();
 //setTimeout(()=>{
 //log(tiling_underlay);
@@ -4284,7 +4691,6 @@ const window_cycle = () => {//«
 		toggle_show_windows();
 		CG.on(WIN_CYCLE_CG_OP);
 	}
-//log(w);
 
 /*«
 	if (show_desktop_during_win_cycle) {
@@ -4422,9 +4828,7 @@ const getorresize = (dir, val, rect, selfarg, if_resize)=>{//«
 	});
 	let low = Infinity;
 	let lowwin;
-let dolog=false;
 	for (let win of wins){
-if (win.id==="win_2") dolog=true;
 //let id = win.id;
 		let rct = win.winElem.getBoundingClientRect();
 //let l = rct.left;
@@ -4442,9 +4846,6 @@ if (win.id==="win_2") dolog=true;
 			}
 		}
 		let diff = val-val2;
-if (dolog) {
-//cwarn(diff);
-}
 		if (if_resize){
 			if (diff > 0){//«
 				if (dir==="left") {
@@ -4511,15 +4912,10 @@ window that gives highly accessible "handles" for each of the directions
 let dir = CRW.rs_dir;
 //The user is dragging the tiny handle at the bottom right of every window
 if (!dir){//«
-let elem = CRW.winElem;
-//log(CRW);
+	let elem = CRW.winElem;
 	CRW.main._w = CRW.main._w + (e.clientX - (pi(CRW.main.offsetWidth) + elem._x)) - winx();
 	CRW.main._h = CRW.main._h + (e.clientY - (pi(CRW.main.offsetHeight) + elem._y + CRW.titlebar._h + CRW.footer.getBoundingClientRect().height)) - winy();
-
-
-	if (CRW.main._w < min_win_width) {
-		CRW.main._w = min_win_width;
-	}
+	CRW.check_size();
 	CRW.status_bar.resize();
 	return;
 }//»
@@ -4710,6 +5106,21 @@ this.cleanup_deleted_wins_and_icons = path => {//«
 		icn.del();
     }  
 }//»
+
+const switch_win_to_workspace = (w, num) => {//«
+	let oldwins = workspaces[w.workspace_num];
+//log(12345);
+	let which = oldwins.indexOf(w);
+	if (which < 0){
+		poperr("Could not find the window in the windows array!");
+		return;
+	}
+	oldwins.splice(which, 1);
+	let newwins = workspaces[num];
+	newwins.push(w);
+	w.workspace_num = num;
+	return true;
+};//»
 
 //»
 //File/App«
@@ -4966,7 +5377,7 @@ const open_file_by_path = async(patharg, cb, opt={}) => {//«
 //		fake.appName = ext_to_app(ext);
 		fake.appName = capi.extToApp(ext);
 	} 
-	else fake.appName = DEF_BIN_OPENER;
+	else fake.appName = DEF_BIN_APP;
 	let rtype = node.type;
 	if (rtype!==FS_TYPE) return poperr(`Not (yet) handling type(${rtype})!`);
 	let bytes = await fsapi.readFile(fullpath, {binary: true});
@@ -5070,13 +5481,16 @@ curElem._h=IGSY;
 curElem._dis="none";
 curElem._op=1;
 curElem._mart=-1.5;
-this.on=(is_tog)=>{
-	if (is_tog) cur_showing = true;
-	else if (!cur_showing) return;
+const show = ()=>{
 	curElem._op=1;
 	curElem._dis="";
 	curElem.scrollIntoViewIfNeeded();
-	this.set();
+};
+this.on=(is_tog)=>{
+	if (is_tog) cur_showing = true;
+	else if (!cur_showing) return;
+	show();
+	this.set(4);
 };
 this.off=(is_tog)=>{
 	if (is_tog) cur_showing = false;
@@ -5111,7 +5525,7 @@ this.setpos=(x,y,icn)=>{//«
 	let d = this.main.scrollTop - curElem.offsetTop;
 	if (d > 0) this.main.scrollTop-=d;
 };//»
-this.set = ()=>{//«
+this.set = (which)=>{//«
 	if (this.isdesk()){
 		curElem._x=desk_grid_start_x;
 		curElem._y=desk_grid_start_y;
@@ -5152,9 +5566,9 @@ this.todesk=()=>{//«
 	}
 	desk._add(curElem);
 	let pos = desk.lastcurpos;
+	show();
 	if (pos) this.setpos(pos.X, pos.Y);
-	else this.set();
-	this.on();
+	else this.set(5);
 };//»
 this.right=(if_ctrl)=>{//«
 	let {X:_x,Y:_y}=this.getpos();
@@ -5652,317 +6066,17 @@ const reloadIcons = win => {//«
 	});
 }//»
 const update_folder_statuses = usepath => {//«
-	for (let w of windows) {
-		if (w.appName !== FOLDER_APP) continue;
-		if (usepath) {
-			if (w.fullpath === usepath) w.app.update();
-		} else w.app.update();
+	for (let wins of workspaces) {
+		for (let w of wins) {
+			if (w.appName !== FOLDER_APP) continue;
+			if (usepath) {
+				if (w.fullpath === usepath) w.app.update();
+			} else w.app.update();
+		}
 	}
 };
 this.update_folder_statuses=update_folder_statuses;
 //»
-
-//»
-//Taskbar«
-
-const Taskbar = function(){
-
-//DOM«
-
-let bar = mkdv();//«
-this.taskbarElem=bar;
-
-bar.style.justifyContent="space-between";
-bar.style.userSelect="none";
-bar.onmousedown=noprop;
-bar._padt=3;
-bar._padb=1;
-bar._h=26;
-if (qObj.nobar) bar._dis="none";
-else bar._dis="flex";
-bar._pos="fixed";
-bar._b=0;
-bar._w="100%";
-bar._op=0;
-bar._z=MIN_WIN_Z-1;
-bar._bgcol=TASKBAR_BG_COL;
-
-if (globals.isFox) bar._bor=TASKBAR_BOR_FOX;
-else bar._bor=TASKBAR_BOR;
-
-bar.id="taskbar";
-//»
-let mwb = mkdv();//«
-mwb._marr=mwb._marl=3;
-mwb._dis="flex";
-//»
-let st = start_button;//«
-//st._padt=st._padb=3;
-st._padr=st._padl=5;
-//st._bgcol="#222";
-
-st._tcol="#999";
-st._ff="arial";
-st._dis="flex";
-st.style.alignItems="center";
-st.style.justifyContent="center";
-st._fs=16;
-//st.innerText="\u{1f30e}\u{202f}Begin";
-st.innerText="\u{1f463}\u{202f}Begin";
-st._bor=`${TASKBAR_BOR_WID} outset ${TASKBAR_BOR_COL}`;
-//»
-
-//»
-
-//Methods«
-
-this.hide=(if_temp)=>{//«
-	bar._z = CG_Z-1;
-	bar._b = -bar._gbcr().height;
-	if (if_temp) return;
-	taskbar_hidden=true;
-	if (!globals.read_only) localStorage[lst_hidden]="true";
-};//»
-this.show=(if_temp)=>{//«
-	bar._b=0;
-	if (if_temp) {
-		bar._z=CG_Z+2;
-		return;
-	}
-	bar._z=MIN_WIN_Z-1;
-	taskbar_hidden=false;
-	if (!globals.read_only){
-		delete localStorage[lst_hidden];
-	}
-};//»
-this.toggle_expert_mode = ()=>{//«
-	if (taskbar_expert_mode){
-		taskbar_expert_mode = false;
-		delete localStorage[lst_expert];
-		st._dis="";
-	}
-	else{
-		taskbar_expert_mode = true;
-		localStorage[lst_expert]="true";
-		st._dis="none";
-	}
-}//»
-this.addwin=(w)=>{//«
-	const dounmin=(if_instant)=>{//«
-		w.winElem._dis="";
-		let rect = d._gbcr();
-		d._del();
-		const done=()=>{//«
-			delete w.is_minimized;
-			w.winElem._op=1;
-			num_minimized_wins--;
-			delete w.unminimize;
-			if (w===CWIN) CWIN=null;
-			w.check_loc();
-			w.check_size();
-			w.on();
-		}//»
-		if (if_instant) return done();
-		w.winElem._op=0;
-		let t = mkdv();
-		t._pos="fixed";
-		t._w=rect.width;
-		t._h=rect.height;
-		t._loc(rect.left,rect.top);
-		t._bor="1px solid #ccc";
-		t._z=CG_Z-1;
-		desk._add(t);
-		rect = w.winElem._gbcr();
-		t.style.transition = `transform ${WIN_MIN_TRANS_SECS}s ease 0s, left ${WIN_MIN_TRANS_SECS}s ease 0s, top ${WIN_MIN_TRANS_SECS}s ease 0s, width ${WIN_MIN_TRANS_SECS}s ease 0s`;
-		requestAnimationFrame(()=>{
-			t.ontransitionend=()=>{
-				w.winElem._op=1;
-				t._del();
-				done();
-			};
-			t._loc(rect.left, rect.top);
-			t._w=rect.width;
-			t._h=rect.height;
-		});
-	};//»
-	let max_wid = "300px";
-
-	let rect = w.winElem._gbcr();
-	let t = mkdv();
-	t._pos="fixed";
-	t._w=rect.width;
-	t._h=rect.height;
-	t._loc(rect.left,rect.top);
-	t._bor="1px solid #ccc";
-	t._z=CG_Z-1;
-	t.style.transition = `transform ${WIN_MIN_TRANS_SECS}s ease 0s, left ${WIN_MIN_TRANS_SECS}s ease 0s, top ${WIN_MIN_TRANS_SECS}s ease 0s, width ${WIN_MIN_TRANS_SECS}s ease 0s`;
-	requestAnimationFrame(()=>{
-		let c = mwb.lastChild;
-		let x = c._gbcr().left;
-		let wid = c._gbcr().width;
-		t.ontransitionend=()=>{
-			d._op=1;
-			t._del();
-		};
-		t._loc(x, winh());
-		t._w=wid;
-	});
-
-	desk._add(t);
-
-	w.winElem._dis="none";
-	w.is_minimized=true;
-	w.winElem._op = MIN_WIN_OP;
-	num_minimized_wins++;
-	w.winElem._z= MIN_WIN_Z;
-	let d = mkdv();
-	d.style.flexShrink=1;
-	d._op=0;
-	d.style.flexBasis=max_wid;
-	d._padt=d._padb=1;
-	d._padl=d._padr=5;
-	d._marr=d._marl=1.5
-	d.style.maxWidth=max_wid;
-	d._fs=15;
-	d._dis="flex";
-	d._pos="relative";
-	d._tcol="#999";
-	d._bor=`${TASKBAR_BOR_WID} outset ${TASKBAR_BOR_COL}`;
-	d._over="hidden";
-
-	let imdiv = w.img_div.cloneNode(true);
-	imdiv._marr=5;
-	imdiv._pos="";
-	d._add(imdiv);
-	let titstr = w.title;
-
-	let tit = mkdv();
-	tit._w="100%";
-	tit.innerText=titstr;
-	w.mintitle = tit;
-	d._add(tit);
-	let fdv = mkdv();
-	fdv._pos="absolute";
-	fdv._loc(0,0);
-	fdv._w="100%";
-	fdv._h="100%";
-	fdv.style.backgroundImage=MIN_WIN_LIN_GRAD;
-	d._add(fdv);
-	d.onmousedown=(e)=>{
-		if (e&&e.button!==0) return;
-		d.is_active = true;
-		d._bor=`${TASKBAR_BOR_WID} inset ${TASKBAR_BOR_COL}`;
-	};
-	d.onmouseup=()=>{
-		d.is_active = false;
-		d._bor=`${TASKBAR_BOR_WID} outset ${TASKBAR_BOR_COL}`;
-	};
-	d.onmouseout=()=>{
-		d.is_active = false;
-		d._bor=`${TASKBAR_BOR_WID} outset ${TASKBAR_BOR_COL}`;
-	};
-
-	d.oncontextmenu=nopropdef;
-	d.onclick=()=>{dounmin()};
-//	w.unminimize = dounmin;
-	w.unminimize=(if_instant)=>{
-		if (if_instant) return dounmin(true);
-		d._bor=`${TASKBAR_BOR_WID} inset ${TASKBAR_BOR_COL}`;
-		setTimeout(() => {
-			dounmin();
-			d._bor = `${TASKBAR_BOR_WID} outset ${TASKBAR_BOR_COL}`;
-		}, 200);
-	};
-	w._button=d;
-	mwb._add(d);
-	if (w===CWIN) {
-		CWIN=null;
-		top_win_on();
-	}
-};//»
-this.resize=()=>{mwb._w=winw()};
-//»
-
-//Listeners«
-bar.oncontextmenu=e=>{//«
-	e.preventDefault();
-	e.stopPropagation();
-
-	CWIN&&CWIN.off();
-
-	let items_arr=[];
-	if (taskbar_hidden){
-		items_arr.push("Show\x20Taskbar");
-		items_arr.push(()=>{
-			this.show();
-		});
-	}
-	else{
-		items_arr.push("Hide\x20Taskbar");
-		items_arr.push(()=>{
-			this.hide();
-		});
-	}
-	if (taskbar_expert_mode){
-		items_arr.push("Expert\x20Mode\x20Off");
-		items_arr.push(Desk.toggle_expert_mode);
-	}
-	else{
-		items_arr.push("Expert\x20Mode\x20On");
-		items_arr.push(Desk.toggle_expert_mode);
-	}
-
-	set_context_menu({
-		X: e.clientX,
-		Y: e.clientY
-	}, {items: items_arr});
-
-}//»
-bar.onmouseleave=()=>{//«
-	if (taskbar_hidden){
-		this.hide();
-	}
-}//»
-bar.onmousemove=noprop;
-st.onmousedown = (e) => {
-	if (e.button !== 0) return;
-	st._bor = `${TASKBAR_BOR_WID} inset ${TASKBAR_BOR_COL}`;
-//log(st);
-};
-st.onmouseup=()=>{st._bor=`${TASKBAR_BOR_WID} outset ${TASKBAR_BOR_COL}`;};
-st.onmouseout=()=>{st._bor=`${TASKBAR_BOR_WID} outset ${TASKBAR_BOR_COL}`;};
-st.oncontextmenu=nopropdef;
-st.onclick=(e)=>{//«
-	const doit=()=>{set_context_menu({X:0,Y:bar.clientHeight+5},{BREL:true});}
-	if (e.isTrusted) return doit();
-	st._bor=`${TASKBAR_BOR_WID} inset ${TASKBAR_BOR_COL}`;
-	setTimeout(()=>{st._bor=`${TASKBAR_BOR_WID} outset ${TASKBAR_BOR_COL}`;doit();},200);
-};//»
-//»
-
-//Init«
-
-let curuser = globals.current_user;
-let lst_hidden = `taskbar_hidden:${curuser}`;
-let lst_expert = `taskbar_expert:${curuser}`;
-
-taskbar_hidden = localStorage[lst_hidden];
-taskbar_expert_mode = localStorage[lst_expert];
-
-if (taskbar_hidden) this.hide();
-if (taskbar_expert_mode) st._dis="none";
-
-bar._add(st);
-bar._add(mwb);
-if (!isMobile) desk._add(bar);
-
-setTimeout(()=>{
-	bar.style.transition = `bottom ${TASKBAR_TRANS_SECS}s ease 0s`;
-},500);
-
-//»
-
-};
 
 //»
 //Widgets«
@@ -6007,7 +6121,6 @@ const center = (elem, usewin) => {
 const noop=()=>{};
 //const{winw,winh}=Core;
 const noprop=(e)=>{e.stopPropagation();}
-const set_box_shadow=(elm,val)=>{elm.style.webkitBoxShadow=val;elm.style.boxShadow=val;}
 
 const menu_loc_from = (menuobj, item) => {//«
 	let type = menuobj.type;
@@ -6044,10 +6157,15 @@ const menu_loc_from = (menuobj, item) => {//«
 		Y: newy
 	};
 }//»
-const ContextMenu=function(elem, loc, type, prevelem, noarg, if_internal) {//«
-	let killed = false;
+const ContextMenu = function(loc, prevelem) {//«
+	let elem = desk;
+
+	let killed = false;//«
 	let self = this;
-	let menu = make('div');
+	let curitem = null;
+	let kids = [];
+//»
+	let menu = make('div');//«
 	menu.style.userSelect="none";
 	menu.className="context_menu";
 	menu._bor="2px outset #aaa";
@@ -6059,7 +6177,7 @@ const ContextMenu=function(elem, loc, type, prevelem, noarg, if_internal) {//«
 	menu._pos="absolute";
 	menu.style.minWidth = 180;
 	let usex=loc.X-winx(), usey=loc.Y-winy();
-	if (if_internal) {
+	if (prevelem) {
 		usex-=8;
 		usey-=2;
 	}
@@ -6079,16 +6197,14 @@ const ContextMenu=function(elem, loc, type, prevelem, noarg, if_internal) {//«
 		menu._r="";
 		menu._x = usex;
 	}
-	let curitem=null;
-	let kids = [];
-
-	const check_menu_width = (sp) => {
+//»
+	const check_menu_width = sp => {//«
 		let diff = menu.offsetWidth - sp.offsetWidth;
-		let mindiff = 57;
+		let mindiff = 77;
 		let diffoff = mindiff - diff;
 		if (diffoff > 0) sp._marr = diffoff;
-	};
-	const next_item = () => {
+	};//»
+	const next_item = () => {//«
 		let kid;
 		if (!curitem) kid = kids[0];
 		else {
@@ -6097,8 +6213,8 @@ const ContextMenu=function(elem, loc, type, prevelem, noarg, if_internal) {//«
 			else kid = kids[0];
 		}
 		if (kid) kid.on();
-	};
-	const prev_item = () => {
+	};//»
+	const prev_item = () => {//«
 		let kid;
 		if (!curitem) kid = kids[kids.length - 1];
 		else {
@@ -6107,25 +6223,17 @@ const ContextMenu=function(elem, loc, type, prevelem, noarg, if_internal) {//«
 			else kid = kids[kids.length - 1];
 		}
 		if (kid) kid.on();
-	};
+	};//»
 
-	this.adjust_y = function() {
-		if (type == "desk") {
-			let y = 0;
-			let winh=window.innerHeight;
-			let _h = menu.getBoundingClientRect().height;
-			if (menu._y + _h > winh) {
-				menu._y = winh - _h;
-			}
-		} else {
-			let menurect = menu.getBoundingClientRect();
-			let parrect = elem.getBoundingClientRect();
-			let t = menurect.top;
-			let b = parrect.bottom;
-			if (t + menu.offsetHeight > b) menu._y = elem.offsetHeight - menu.offsetHeight;
+	this.adjust_y = function() {//«
+		let y = 0;
+		let winh=window.innerHeight;
+		let _h = menu.getBoundingClientRect().height;
+		if (menu._y + _h > winh) {
+			menu._y = winh - _h;
 		}
-	};
-	this.kill = function() {
+	};//»
+	this.kill = function() {//«
 		if (killed) return;
 		delete elem.context_menu;
 		menu._del();
@@ -6137,35 +6245,28 @@ const ContextMenu=function(elem, loc, type, prevelem, noarg, if_internal) {//«
 		killed = true;
 		if (self.par) self.par.kill();
 		if (self.kid) self.kid.kill();
-	};
-	this.key_handler = function(e, sym) {
+	};//»
+	this.key_handler = function(e, sym) {//«
 		e.preventDefault();
 		if (sym == "UP_") prev_item();
 		else if (sym == "DOWN_") next_item();
 		else if (sym == "RIGHT_") {
-			if (curitem && curitem.is_array) curitem.select();
+			if (curitem && curitem._is_array) curitem.select();
 		} else if (sym == "LEFT_") {
-//HEJUI
 			if (curitem && curitem.menu.par) {
 				curitem.menu.par.curitem.on();
 				delete curitem.menu.par.kid;
 				curitem.menu.menuElem._del();
 			}
 		}
-	};
-	this.select = function() {
-		if (curitem) curitem.select();
-		else cerr("No curitem!");
-	};
-	this.scroll_to = num => {
-		if (num == 0) {
-			kids[0].on();
-			return;
-		}
-		for (let i = 0; i < num; i++) next_item();
-	};
-	this.add_item = function(name, val) {
-		const select = () => {
+	};//»
+	this.select = function() {//«
+		if (!curitem) return cerr("No curitem!!!");
+		curitem.select();
+	};//»
+
+	this.add_item = function(namearg, val) {//«
+		const select = () => {//«
 			if (val instanceof Function) {
 				self.kill();
 				val();
@@ -6173,7 +6274,7 @@ const ContextMenu=function(elem, loc, type, prevelem, noarg, if_internal) {//«
 				self.curitem = curitem;
 				let olditem = curitem;
 				if (curitem) curitem.off();
-				let newmenu = new ContextMenu(elem, menu_loc_from(self, olditem), type, menu, null, true);
+				let newmenu = new ContextMenu(menu_loc_from(self, olditem), menu);
 				newmenu.kill_cb = desk_menu.kill_cb;
 				desk_menu = newmenu;
 				for (let i = 0; i < val.length; i += 2) {
@@ -6184,12 +6285,11 @@ const ContextMenu=function(elem, loc, type, prevelem, noarg, if_internal) {//«
 				self.kid = newmenu;
 				newmenu.adjust_y();
 			}
-		};
-		let div = make('div');
-		const delete_menus=()=>{//«
+		};//»
+		const delete_menus = () => {//«
 			let gotmenu = desk_menu || elem.context_menu;
 			if (!gotmenu) {
-				cerr("No gotmenu???");
+cerr("No gotmenu???");
 				return;
 			}
 			let gotcur = gotmenu.curitem;
@@ -6205,7 +6305,7 @@ const ContextMenu=function(elem, loc, type, prevelem, noarg, if_internal) {//«
 					break;
 				}
 				if (!gotcur) {
-					cerr("!!!! Could not find the previous item! !!!!");
+cerr("!!!! Could not find the previous item! !!!!");
 					break;
 				}
 				if (gotcur.menu === div.menu) {
@@ -6221,32 +6321,35 @@ const ContextMenu=function(elem, loc, type, prevelem, noarg, if_internal) {//«
 				elm._del();
 			}
 		};//»
+
+		let div = make('div');//«
+		let namearr = namearg.split("::");
+		let name = namearr[0];
+		let shortcut;
 		div.menu = self;
 		div._marb = 5;
 		div._padl = 18;
 		div._padr = 15;
 		div._padt = 5;
 		div._padb = 5;
-		div._h="20px";
+		div._h = "20px";
 		div._ff = "sans-serif";
 		div._dis = "flex";
 		div.style.justifyContent = "space-between";
-		div.style.alignItems = "center";
-		let namesp = make('sp');
+		let namesp = make('span');
 		div._add(namesp);
 		div.className= "context_menu_item";
 		namesp.className ="context_menu_label";
 		menu._add(div);
-		if (isarr(val)) {
+//»
+		if (isarr(val)) {//«
 			div._tcol="#000";
 			namesp.innerHTML = name;
 			let sp = make('span');
-			sp.style.textAlign = "right";
 			sp._fs = 12;
 			sp.html('&#9654;');
-			sp.style.cssFloat = "right";
 			div._add(sp);
-			div.is_array = true;
+			div._is_array = true;
 			check_menu_width(namesp);
 		} else {
 			if (val) div._tcol="#000";
@@ -6264,31 +6367,44 @@ const ContextMenu=function(elem, loc, type, prevelem, noarg, if_internal) {//«
 			}
 			namesp.innerHTML = name;
 			check_menu_width(namesp);
+			let gotsp;
 			if (mark) {
 				let sp = make('span');
-				sp.html(mark);
-				sp.html(mark);
-				sp.is_sym = true;
-				div._add(sp);
+				gotsp = sp;
+				sp.innerHTML = mark;
+				sp._fw="bold";
 			}
-		}
-		div.on = function(if_mouse) {
+			else if (namearr[1]){
+				let sp = make('span');
+				gotsp = sp;
+				sp._tcol="#444";
+				sp.style.fontStyle = "italic";
+				sp.innerHTML = namearr[1];
+				shortcut = sp;
+			}
+			if (gotsp){
+				div._add(gotsp);
+				check_menu_width(namesp);
+			}
+		}//»
+		div.on = function(if_mouse) {//«
 			if (curitem) curitem.off();
 			div._bgcol = ACTIVE_MENU_BG;
-			div.hold_tcol = div._tcol;
+			div._hold_tcol = div._tcol;
 			div._tcol = ACTIVE_MENU_FG;
+			if (shortcut) shortcut._tcol = ACTIVE_MENU_FG;
 			curitem = div;
-			if (type == "desk") desk_menu = curitem.menu;
-			else elem.context_menu = curitem.menu;
+			desk_menu = curitem.menu;
 			curitem.menu.curitem = curitem;
-		};
-		div.off = function() {
+		};//»
+		div.off = function() {//«
 			curitem = null;
-			div._tcol = div.hold_tcol;
+			div._tcol = div._hold_tcol;
 			div._bgcol="";
-		};
+			if (shortcut) shortcut._tcol = "#444";
+		};//»
 		div.select = select;
-		div.onclick = ()=>{
+		div.onclick = () => {//«
 			if(self.kid) {
 				delete_menus();
 				div.on(true);
@@ -6296,8 +6412,8 @@ const ContextMenu=function(elem, loc, type, prevelem, noarg, if_internal) {//«
 			}
 			delete_menus();
 			select();
-		};
-		div.onmouseenter = e => {
+		};//»
+		div.onmouseenter = e => {//«
 			if((desk_menu || elem.context_menu)!==self) return;
 			if (curitem) {
 				div.on(true);
@@ -6305,16 +6421,14 @@ const ContextMenu=function(elem, loc, type, prevelem, noarg, if_internal) {//«
 			}
 			delete_menus();
 			div.on(true);
-		};
-		div.onmouseover=()=>{
-			div.style.cursor="default";
-		};
+		};//»
+		div.onmouseover=()=>{div.style.cursor="default";};
 		kids.push(div);
 		return div;
-	}
+	}//»
 
-	elem.context_menu = this;
-	this.type=type;
+	elem.context_menu = this;//«
+//	this.type=type;
 	this.menuElem = menu;
 	this.parelem = elem;
 	menu.onclick = noprop;
@@ -6323,7 +6437,7 @@ const ContextMenu=function(elem, loc, type, prevelem, noarg, if_internal) {//«
 	menu.oncontextmenu = noprop;
 	menu._z = CG_Z+1;
 	menu.prevelem = prevelem;
-
+//»
 	document.body._add(menu);
 }
 this.ContextMenu = ContextMenu;
@@ -7315,7 +7429,7 @@ const handle_ESC = (if_alt) => {//«
 	cldragimg(true);
 	CG.off();
 	if (ICONS.length) return icon_array_off(17);
-	if (layout_mode) return toggle_layout_mode();
+	if (windows.layout_mode) return toggle_layout_mode();
 	if (windows_showing) toggle_show_windows();
 };//»
 const dokeydown = function(e) {//«
@@ -7538,7 +7652,7 @@ or when there is an active context menu.
 	}//»
 //Escape and a focused window
 	else if (kstr == "ESC_" && cwin) {//«
-		if (layout_mode) return toggle_layout_mode();
+		if (windows.layout_mode) return toggle_layout_mode();
 		if (cwin.context_menu) {
 			cwin.context_menu.kill();
 			return 
@@ -7681,10 +7795,27 @@ or when there is an active context menu.
 
 //Various harcoded keysyms that *just* intercept the current window
 //«
-	if (kstr=="1_CAS"){
-		open_app("None", {force: true});
+	if (kstr.match(/^[1-9]_CAS$/)){
+		switch_to_workspace(parseInt(kstr.split("_")[0])-1);
 		return;
 	}
+if (kstr=="LEFT_CAS"){
+current_workspace_num--;
+if (current_workspace_num<0) current_workspace_num = num_workspaces-1;
+switch_to_workspace(current_workspace_num, true);
+return;
+}
+if (kstr=="RIGHT_CAS"){
+current_workspace_num++;
+if (current_workspace_num>=num_workspaces) current_workspace_num = 0;
+switch_to_workspace(current_workspace_num, true);
+return;
+
+}
+//	if (kstr=="1_CAS"){
+//		open_app("None", {force: true});
+//		return;
+//	}
 	if (kstr=="l_CAS") return console.clear();
 	if (kstr=="t_CAS") return keysym_funcs.test_function();
 //	if (kstr=="t_CAS") return keysym_funcs.open_app("util.Titles");
@@ -7828,7 +7959,7 @@ keysym_funcs = {
 focus_desktop:()=>{let w=CWIN;if(w&&(w.is_fullscreen||w.is_maxed))return;CWIN&&CWIN.off();CUR.todesk();},
 test_function:async()=>{
 //let win = await api.openApp("dev.Launcher", {force: true});
-
+toggle_tiling_mode();
 },
 make_folder: make_folder,
 toggle_taskbar,
@@ -7942,23 +8073,20 @@ capi.detectClick(document.body, 666, ()=>{//«
 
 const focus_editing=e=>{if(e)nopropdef(e);if(CEDICN)CEDICN.area.focus()}
 const set_context_menu = (loc, opts={}) => {//«
-	let itemsarg=opts.items;
-	let desk_ctx_items = get_desk_context();
 	CG.on();
 	let dx = 0;
 	let usex = loc.X - winx();
 	let usey = loc.Y - winy();
 	if (usex + 200 > winw()) dx = usex + 200 - winw();
-	desk_menu = new WDG.ContextMenu(desk, {
+	desk_menu = new WDG.ContextMenu({
 		X: usex-dx,
 		Y: usey,
 		BREL:opts.BREL,
 		RREL:opts.RREL
-	}, "desk");
-	let useitems = desk_ctx_items;
-	if (itemsarg) useitems = itemsarg;
-	for (let i = 0; i < useitems.length; i += 2) {
-		let item = desk_menu.add_item(useitems[i], useitems[i + 1]);
+	});
+	let items = opts.items || get_desk_context();
+	for (let i = 0; i < items.length; i += 2) {
+		desk_menu.add_item(items[i], items[i + 1]);
 	}
 	desk_menu.adjust_y();
 	return desk_menu;
@@ -8037,6 +8165,7 @@ const cldragimg = if_hard => {//«
 	CDL = null;
 	desk.style.cursor = "";
 };//»
+/*
 const vizwins = () => {//«
 	let ret=[];
 	for (let win of windows){
@@ -8044,6 +8173,7 @@ const vizwins = () => {//«
 	}
 	return ret;
 };//»
+*/
 const desk_drag_off=()=>{DDIE=null;DDD._loc(-1,-1);DDD._w=0;DDD._h=0;}
 const show_overlay=(str)=>{//«
 	if (str.length > MAX_OVERLAY_LENGTH) str = str.slice(0,MAX_OVERLAY_LENGTH)+"...";
@@ -8128,7 +8258,7 @@ console.log(mess);
 	hidden_taskbar_thresh = taskbar.taskbarElem._gbcr().height;
 	taskbar.resize();
 	desk._add(CUR.curElem);
-	CUR.set();
+	CUR.set(0);
 	if (!isMobile && !qObj.nocursor && globals.is_local) CUR.on(true);
 	await reloadIcons();
 	setsyskeys();
@@ -8142,15 +8272,21 @@ console.log(mess);
 		fit_desktop();
 	};//»
 	window.onbeforeunload = () => {//«
-		for (let w of windows){
-			if (w.app) {
-				if (w.app.is_dirty) return "There is an unsaved application!";
-				if (w.app.onkill) w.app.onkill();
+		for (let wins of workspaces) {
+			for (let w of wins){
+				if (w.app) {
+					if (w.app.is_dirty) return true;
+					if (w.app.onkill) w.app.onkill();
+				}
 			}
 		}
 	};//»
 	window.addEventListener("dragover",function(e){e =e||event;e.preventDefault();},false);
 	window.addEventListener("drop",function(e){e =e||event;e.preventDefault();},false);
+
+//  Uncomment to "automount" the www directory upon initialization. 
+//  Otherwise, it will be mounted upon opening the Terminal
+//	fsapi.mountDir("www");
 	setTimeout(()=>{
 		if (globals.read_only) {
 			popup("The system is in read-only mode! (Is it open in another tab?)");
@@ -8167,5 +8303,4 @@ console.log(mess);
 //»
 
 //»
-
 

@@ -48,6 +48,9 @@ const {pathToNode}=fsapi;
 
 //Var«
 
+//Maximum length of a line entered into the terminal (including lines in scripts)
+const MAX_LINE_LEN = 256;
+
 //To allow writing of files even if there is an external lock on it, change this to true
 const allow_write_locked = false;
 
@@ -101,7 +104,7 @@ const write_to_redir=async(term, str, redir)=>{//«
 
 //Builtin commands«
 
-const com_ls = async (term, args) => {//«
+const com_ls = async (term, args, opts = {}) => {//«
 	const terr=(arg)=>{term_error(term, arg);return TERM_ERR;};
 	const tout=(arg)=>{term_out(term, arg);return TERM_OK;};
 	if (!args.length) args.push("./");
@@ -111,10 +114,13 @@ const com_ls = async (term, args) => {//«
 		let node = await fsapi.pathToNode(regpath);
 		if (!node) return terr(`${regpath}: No such file or directory`);
 		if (node.appName !== FOLDER_APP) {
-			let file = await node._file;
 			let sz;
-			if (file) sz = file.size;
-			if (!Number.isFinite(sz)) sz = "?";
+			if (Number.isFinite(node.size)) sz = node.size;
+			else {
+				let file = await node._file;
+				if (file) sz = file.size;
+				if (!Number.isFinite(sz)) sz = "?";
+			}
 			tout(`${node.name} ${sz}`);
 			continue;
 		}
@@ -143,6 +149,7 @@ const com_ls = async (term, args) => {//«
 		let ret = [];
 		let col_ret = [];
 		term.fmt_ls(out, lens, ret, undefined, types, col_ret);
+		if (opts.if_script) col_ret = [];
 		term.response({SUCC: ret, COLORS: col_ret, NOEND: true});
 	}
 	return TERM_OK;
@@ -214,18 +221,19 @@ const com_touch = async (term, args) => {//«
 	}
 	return TERM_OK;
 };//»
-const com_echo = async (term, args, redir) => {//«
+const com_echo = async (term, args, opts = {}) => {//«
+
 	const terr=(arg)=>{term_error(term, arg);return TERM_ERR;};
 	const tout=(arg)=>{term_out(term, arg);return TERM_OK;};
 	let str = args.join(" ");
-	if (!redir){
+	if (!opts.redir){
 		let arr = str.split("\n");
 		for (let ln of arr) term.response({SUCC: [term.fmt(ln)], NOEND: true});
 		return TERM_OK;
 	}
-	return write_to_redir(term, str, redir);
+	return write_to_redir(term, str, opts.redir);
 };//»
-const com_cat = async (term, args, redir) => {//«
+const com_cat = async (term, args, opts = {}) => {//«
 	let fullpath;
 	const terr=(arg)=>{term_error(term, arg);return TERM_ERR;};
 	const fullterr=(arg)=>{term_error(term, `${fullpath}: ${arg}`);return TERM_ERR;};
@@ -242,28 +250,28 @@ const com_cat = async (term, args, redir) => {//«
 		let typ = node.type;
 		if (typ==FS_TYPE) {
 			if (!node.blobId) continue;
-			if (node.appName === FOLDER_APP) return fullterr(`Is a directory`);
-			if (node.type !== FS_TYPE) fullterr(`The file is not of type '${FS_TYPE}'`);
-			let val = await node.getValue({text: true});
-			if (!isstr(val)) fullterr("An unexpected value was returned");
-			let arr = val.split("\n");
-			for (let ln of arr) out.push(ln);
 		}
-//		else if (typ=="loc"){
-//log(node);
-//log(await node.getValue({start:10000, end: 11000}));
-//		}
+		else if (typ=="loc"){
+		}
 		else{
 cwarn(`Skipping: ${fullpath} (type=${typ})`);
+			continue;
 		}
+
+		if (node.appName === FOLDER_APP) return fullterr(`Is a directory`);
+		let val = await node.text;
+		if (!isstr(val)) fullterr("An unexpected value was returned");
+		let arr = val.split("\n");
+		for (let ln of arr) out.push(ln);
+
 	}
-	if (!redir){
+	if (!opts.redir){
 		for (let ln of out) {
 			term.response({SUCC: term.fmt(ln)}, {NOEND: true});
 		}
 		return TERM_OK;
 	}
-	return write_to_redir(term, out.join("\n"), redir)
+	return write_to_redir(term, out.join("\n"), opts.redir)
 };//»
 const com_env = async (term, args) => {//«
 	const terr=(arg)=>{term_error(term, arg);return TERM_ERR;};
@@ -334,7 +342,7 @@ const com_rmdir = async (term, args) => {//«
 	}
 	return TERM_OK;
 };//»
-const com_mv = async (term, args, if_cp) => {//«
+const com_mv = async (term, args, opts = {}) => {//«
 	const terr=(arg)=>{
 		term_error(term, arg);
 		term.refresh();
@@ -342,6 +350,7 @@ const com_mv = async (term, args, if_cp) => {//«
 	};
 	const tout=(arg)=>{term_out(term, arg);return TERM_OK;};
 	let com;
+	let if_cp = opts.if_cp;
 	if (if_cp) com="cp";
 	else com="mv";
 	if (!args.length) return terr(`${com}: missing file operand`);
@@ -349,8 +358,8 @@ const com_mv = async (term, args, if_cp) => {//«
 	if (!rv) return TERM_ERR;
 	return TERM_OK;
 };//»
-const com_cp=(term, args)=>{//«
-	return com_mv(term, args, true);
+const com_cp = (term, args) => {//«
+	return com_mv(term, args, {if_cp: true});
 };//»
 const com_rm = async (term, args) => {//«
 	const terr=(arg)=>{term_error(term, arg);return TERM_ERR;};
@@ -443,16 +452,28 @@ const com_less = async (term, args) => {//«
 	const tout=(arg)=>{term_out(term, arg);return TERM_OK;};
 //	const _wrap_line=(arg)=>{return term.wrap_line(term, arg);};
 	let path = args.shift();
-	if (!path) return terr("An argument is expected");
-	let fullpath = normPath(path, term.cur_dir);
-	let node = await fsapi.pathToNode(fullpath);
-	if (!node) return terr(`${fullpath}: No such file or directory`);
-	if (node.appName === FOLDER_APP) return terr(`${fullpath}: Is a directory`);
-	let val = await node.getValue({text:true});
+	let arr;
+	let name;
+	if (!path) {
+		arr = term.get_buffer();
+		name = "*buffer*";
+//log(term.get_buffer());
+//		return terr("An argument is expected");
+	}
+	else {
+		let fullpath = normPath(path, term.cur_dir);
+		let node = await fsapi.pathToNode(fullpath);
+		if (!node) return terr(`${fullpath}: No such file or directory`);
+		if (node.appName === FOLDER_APP) return terr(`${fullpath}: Is a directory`);
+		let val = await node.getValue({text:true});
+		arr = val.split("\n");
+		name = node.name;
+	}
 	if (!await capi.loadMod("pager")) return terr("Could not load the pager module");
 //	let less = new NS.mods.pager({termobj: term, wrap_line: _wrap_line});
+	
 	let less = new NS.mods.pager(term);
-	await less.init(val.split("\n"), node.name);
+	await less.init(arr, name);
 	return TERM_OK;
 
 };//»
@@ -521,43 +542,11 @@ const com_unmount = async (term, args) => {//«
 };//»
 const com_mount = async (term, args) => {//«
 	const terr=(arg)=>{term_error(term, arg);return TERM_ERR;};
-    let mntdir = fs.root.kids.mnt;
-    let mntkids = mntdir.kids
-    let name = args.shift();
-    if (!name) return terr("Mount name not given!");
-    if (!name.match(/^[a-z][a-z0-9]*$/i)) return terr("Invalid mount name!");
-	if (mntkids[name]) return terr(`${name}: Already mounted`);
-	let rv = await fetch(`/${name}/.list.json`);
-	if (!rv.ok){
-		terr(`Could not get the listing for '${name}'`);
-		return TERM_ERR;
-	}
-	let list = await rv.json();
-	const mount_dir=(name, list, par)=>{
-		let kids = par.kids;
-		for (let i=0; i < list.length; i++){
-			let arr = list[i].split("/");
-			let nm = arr[0];
-			let sz = arr[1];
-			if (sz){
-				let node = fs.mk_dir_kid(par, nm, {size: parseInt(sz)});
-				kids[nm] = node;
-			}
-			else {
-				let dir = fs.mk_dir_kid(par, nm, {isDir: true});
-				mount_dir(nm, list[i+1], dir);
-				kids[nm] = dir;
-				i++;
-			}
-		}
-	}
-	let root = fs.mk_dir_kid(mntdir, name, {isDir: true});
-	root.root = root;
-	root._type = "loc";
-	mntkids[name]=root;
-	mount_dir(name, list, root);
-	return TERM_OK;
-};//»
+	let rv = await fsapi.mountDir(args.shift());
+	if (isstr(rv)) return terr(rv);
+	else if (rv!==true) return terr(`Unknown response: ${rv}`);
+}//»
+
 const com_clear=(term, args)=>{//«
 term.clear();
 return TERM_OK;
@@ -685,10 +674,10 @@ const Shell = function(term){
 
 //Var«
 const CONTROL_WORDS = ["if", "then", "elif", "else", "fi", "do", "while", "until", "for", "in", "done", "select", "case", "esac"];
-const terr=(arg)=>{//«
+const terr=(arg, if_script)=>{//«
 	if (isstr(arg)) arg = term.fmt([arg]);
 	term.response({ERR: arg});
-	term.response({DONE: true});
+	if (!if_script) term.response({DONE: true});
 };//»
 //»
 
@@ -944,25 +933,43 @@ const shell_tokify = line_arr => {//«
 };//»
 
 //»
-
-this.execute=async(str)=>{//«
+this.execute=async(str, if_script)=>{//«
+	if (str.length > MAX_LINE_LEN) return terr(`'${str.slice(0,10)} ...': line length > MAX_LINE_LEN(${MAX_LINE_LEN})`, if_script);
 	let redir;
 	str = str.replace(/^ +/,"");
 	let arr = shell_escapes([str]);
 	arr = shell_quote_strings(arr);
-	if (isstr(arr)) return terr(term.fmt(arr));
+	if (isstr(arr)) return terr(term.fmt(arr), if_script);
 	arr = shell_tokify(arr);
-	if (isstr(arr)) return terr(term.fmt(arr));
+	if (isstr(arr)) return terr(term.fmt(arr), if_script);
 
 	let comobj = arr.shift();
-	if (!(comobj && comobj.t==="word")) return terr("Unknown or missing command");
+	if (!(comobj && comobj.t==="word")) return terr("Unknown or missing command", if_script);
 	let comword = comobj.word;
 	let com = shell_commands[comword];
 	if (!com) {
 		if (CONTROL_WORDS.includes(comword)){
-			return terr(`sh: Control structures are not implemented`);
+			return terr(`sh: Control structures are not implemented`, if_script);
 		}
-		return terr(`sh: ${comword}: unknown command`);
+
+//Anything with internal slashes is treated as a path to a "shell script"
+		if (comword.match(/\x2f/)){
+			let node = await fsapi.pathToNode(normPath(comword, term.cur_dir));
+			if (node){
+				let text = await node.text;
+				if (text) {
+					let lines = text.split("\n");
+					for (let ln of lines){
+						let com = ln.trim();
+						if (!com) continue;
+						await this.execute(com, true);
+					}
+				}
+				term.response({DONE: true});
+				return;
+			}
+		}
+		return terr(`sh: ${comword}: unknown command`, if_script);
 	}
 	let out=[];
 	for (let tok of arr){
@@ -994,12 +1001,12 @@ this.execute=async(str)=>{//«
 		}
 		else if (typ==="r_op"){
 			if (tok.r_op !== ">"){
-				return terr(`Unknown operator: '${tok.r_op}'`);
+				return terr(`Unsupported operator: '${tok.r_op}'`, if_script);
 			}
-			if (redir) return terr("Already have a redirect");
+			if (redir) return terr("Already have a redirect", if_script);
 			let tok2 = arr[i+1];
 			if (tok2.t == "quote") tok2={t: "word", word: tok2.quote.join("")}
-			if (!(tok2 && tok2.t==="word")) return terr(`Invalid or missing redirection operand`);
+			if (!(tok2 && tok2.t==="word")) return terr(`Invalid or missing redirection operand`, if_script);
 			arr.splice(i+1, 1);
 			val = null;
 			redir = [tok.r_op, tok2.word];
@@ -1012,16 +1019,17 @@ this.execute=async(str)=>{//«
 			args.push(val);
 		}
 	}//»
-	let rv = await com(term, args, redir);
+	let rv = await com(term, args, {redir, if_script});
 	if (!Number.isFinite(rv)){
-//cerr("Invalid return code returned");
-//log(rv);
 		term.ENV['?']=-1;
 	}
 	else{
 		term.ENV['?']=rv;
 	}
-	term.response({DONE: true});
+	if (if_script) {
+		term.refresh();
+	}
+	else term.response({DONE: true});
 }//»
 this.cancel = () => {};
 
@@ -1090,7 +1098,7 @@ $ cat ' 'file w<TAB>
 //Development mod deleting«
 
 const DEL_MODS=[
-	"editor",
+//	"editor",
 //	"webmparser"
 //	"pager"
 ];
@@ -1273,6 +1281,7 @@ let textarea;
 let areadiv;
 if (!isMobile) {
 	textarea = make('textarea');
+	textarea.id = `textarea_${Win.id}`;
 	textarea._noinput = true;
 	textarea.width = 1;
 	textarea.height = 1;
@@ -3766,7 +3775,6 @@ const handle=(sym, e, ispress, code, mod)=>{//«
 //Init«
 
 const init = async(appargs={})=>{
-
 	ENV['USER'] = globals.CURRENT_USER;
 	this.cur_dir = get_homedir();
 	let gotfs = localStorage.Terminal_fs;
@@ -3792,15 +3800,15 @@ const init = async(appargs={})=>{
 		}
 	}
 
-let version = isMobile?"mobile":"desktop";	
-const init_prompt = `LOTW ${version} shell\x20(${winid.replace("_","#")})`;
+	let version = isMobile?"mobile":"desktop";	
+	const init_prompt = `LOTW ${version} shell\x20(${winid.replace("_","#")})`;
 	respsucclines(init_prompt.split("\n"));
 	did_init = true;
 	sleeping = false;
 	shell = new Shell(this);
 	set_prompt();
 	render();
-
+	fsapi.mountDir("www");
 };
 //»
 //Obj/CB«
@@ -3989,5 +3997,4 @@ this.is_busy=()=>{return !!cur_shell;}
 }; 
 
 //»
-
 

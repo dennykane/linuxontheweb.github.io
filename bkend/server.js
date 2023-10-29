@@ -36,8 +36,11 @@ const handler = async(req, res) => {//«
 		if (arg) res.end(`Error: ${arg}\n`);
 		else res.end("Error\n");
 	};//»
+	let _url = decodeURIComponent(req.url);
+	let meth = req.method;
 
-	let url_parts = req.url.split("?");//«
+
+	let url_parts = _url.split("?");//«
 	let url = url_parts[0];
 	let path;
 	let args={};
@@ -48,6 +51,7 @@ const handler = async(req, res) => {//«
 			args[ar[0]] = ar[1];
 		}
 	}
+log(`${meth} ${url}`);
 	if (url=="/") path = "./index.html";
 	else path = `.${url}`;
 	let ext = path.split(".").pop();
@@ -57,10 +61,12 @@ const handler = async(req, res) => {//«
 	if (!mime) mime = DEF_MIME;
 //»
 
+if (meth === "GET") {
+
 	if (args.start && args.end) {//«
 		let si = parseInt(args.start);
 		let ei = parseInt(args.end);
-		let diff = ei - si;
+		let diff = ei - si + 1;
 		if (Number.isFinite(diff) && diff > 0) {
 			let buf = new Uint8Array(diff);
 			let fd = await fsprom.open(path);
@@ -77,6 +83,11 @@ const handler = async(req, res) => {//«
 		ok();
 		res.end(fs.readFileSync(path));
 	}//»
+
+}
+else{
+	no("Unsupported method");
+}
 
 };//»
 

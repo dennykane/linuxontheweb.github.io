@@ -1106,7 +1106,7 @@ for (let arr of mvarr) {//«
 
 	if (type=="loc"){//«
 		let tofullpath = `${savedir.fullpath}/${savename}`;
-		werr(`Getting: ${savename}`)
+//		werr(`Getting: ${savename}`)
 		if (!await saveFsByPath(tofullpath, await fent.buffer)) {
 			werr(`${tofullpath}: There was a problem saving to the file`);
 		}
@@ -1202,7 +1202,11 @@ return new Promise(async(Y,N)=>{
 		let arr = node.fullpath.split("/");
 		arr.shift();
 		arr.shift();
-		let rv = await fetch(`/${arr.join("/")}`);
+		let url = `/${arr.join("/")}`;
+		if (Number.isFinite(opts.from) && Number.isFinite(opts.to)){
+			url+=`?start=${opts.from}&end=${opts.to}`;
+		}
+		let rv = await fetch(url);
 		if (!rv.ok){
 			return Y();
 		}
@@ -1728,7 +1732,44 @@ const checkDirPerm=(path_or_obj,opts={})=>{//«
 };//»
 
 //»
-//Init/Populate Dirs«
+//Init/Populate/Mount Dirs«
+
+const mountDir = async (name) => {//«
+    let mntdir = root.kids.mnt;
+    let mntkids = mntdir.kids
+    if (!name) return "Mount name not given!";
+    if (!name.match(/^[a-z][a-z0-9]*$/i)) return "Invalid mount name!";
+	if (mntkids[name]) return `${name}: Already mounted`;
+	let rv = await fetch(`/${name}/.list.json`);
+	if (!rv.ok){
+		return `Could not get the listing for '${name}'`;
+	}
+	let list = await rv.json();
+	const mount_dir=(name, list, par)=>{
+		let kids = par.kids;
+		for (let i=0; i < list.length; i++){
+			let arr = list[i].split("/");
+			let nm = arr[0];
+			let sz = arr[1];
+			if (sz){
+				let node = mk_dir_kid(par, nm, {size: parseInt(sz)});
+				kids[nm] = node;
+			}
+			else {
+				let dir = mk_dir_kid(par, nm, {isDir: true});
+				mount_dir(nm, list[i+1], dir);
+				kids[nm] = dir;
+				i++;
+			}
+		}
+	}
+	let mntroot = mk_dir_kid(mntdir, name, {isDir: true});
+	mntroot.root = mntroot;
+	mntroot._type = "loc";
+	mntkids[name]=mntroot;
+	mount_dir(name, list, mntroot);
+	return true;
+}//»
 
 const init = async()=>{//«
 	if (!await db.init(root, DBNAME, DBSIZE, DEF_BRANCH_NAME)) {
@@ -2739,6 +2780,7 @@ this.api = {//«
 
 	popDir,
 	popDirByPath,
+	mountDir,
 
 	pathToNode,
 

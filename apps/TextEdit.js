@@ -52,6 +52,7 @@ let modified = false;
 let focused = false;
 
 let area = make('textarea');
+area.id = `textarea_${Win.id}`;
 area.style.caretShape="block";
 //area.spellcheck=false;
 area.onmousedown=function(e) {

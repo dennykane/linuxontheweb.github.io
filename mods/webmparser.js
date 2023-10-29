@@ -1646,7 +1646,9 @@ const toint = (arr, if_cp) => {//«
 	let n = 0;
 	for (let i = 0; i < arr.length; i++) n |= (arr[i] << (i * 8));
 	return n;
-}//»
+}
+this.toInt = toint;
+//»
 const to_hex_str=(arr, max_len)=>{//«
 	let str = '';
 	let len = arr.length;

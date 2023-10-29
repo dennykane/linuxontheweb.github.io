@@ -4,7 +4,7 @@ const {//«
 	ALL_EXTENSIONS,
 	EXT_TO_APP_MAP,
 	APPICONS,
-	DEF_APP,
+//	DEF_APP,
 	NS
 }=globals;
 //»
@@ -532,7 +532,8 @@ return basearr;
 uniq:arr=>{return arr.filter((value,index,array)=>{return array.indexOf(value)===index;});},
 extToApp: (arg) => {
 	let ext = arg.split(".").pop();
-	return EXT_TO_APP_MAP[ext] || DEF_APP;
+	if (!ext) return;
+	return EXT_TO_APP_MAP[ext.toLowerCase()];
 },
 clipCopy:s=>{copyarea.value=s;copyarea.select();document.execCommand("copy");},
 setEnv:(k,v)=>{ENV[k]=v;},

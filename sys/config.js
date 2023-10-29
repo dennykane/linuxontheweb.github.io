@@ -65,7 +65,7 @@ const DESK_PATH = `${HOME_PATH}/Desktop`;
 
 //»
 
-//Apps«
+//Apps/Extensions«
 
 const ALL_EXTENSIONS=[];
 const TEXT_EXTENSIONS=[ "txt","js","json","app","html","htm","css"];
@@ -76,11 +76,10 @@ const TERMINAL_APP = "Terminal";
 const IMAGE_APP = "util.ImageView";
 //const MEDIA_APP = "MediaPlayer";
 const MEDIA_APP = "dev.VideoCutter";
-const DEF_APP = "BinView";
+const DEF_BIN_APP = "BinView";
 const HTML_APP = "dev.HTML";
 const TEXT_EDITOR_APP = "TextEdit";
 
-const DEF_BIN_OPENER = "BinView";
 const FOLDER_APP = "Folder";
 const TEXT_APP = "util.TextView";
 const WRITING_APPS = [
@@ -90,15 +89,17 @@ const VIEWONLY_APPS=[];
 
 //File extensions/Unicode icons«
 //Extension points to the array position above
-let TEA = TEXT_EDITOR_APP;
+let TE = TEXT_EDITOR_APP;
 let IA = IMAGE_APP;
 let MA = MEDIA_APP;
 let AA = "games.Arcade";
 const EXT_TO_APP_MAP={//«
 	app:"Application",
-    txt:TEA,
-    js:TEA,
-    json:TEA,
+    txt:TE,
+    js:TE,
+    json:TE,
+	css:TE,
+	sh:TE,
 	jpg:IA,
 	png:IA,
 	gif:IA,
@@ -205,23 +206,23 @@ export const globals = {//«
 	HOME_PATH,
 	DESK_PATH,
 
-	DEF_APP,	
 	FOLDER_APP,
 	TEXT_APP,
 	TERMINAL_APP,
 	MEDIA_APP,
 	IMAGE_APP,
 	APPICONS,
+	TEXT_EDITOR_APP,
+	DEF_BIN_APP,
+	WRITING_APPS,
 	VIEWONLY_APPS,
+
 	TEXT_EXTENSIONS,
 	MEDIA_EXTENSIONS,
 	IMAGE_EXTENSIONS,
 	ALL_EXTENSIONS,
 	ALL_EXTENSIONS_RE,
 	EXT_TO_APP_MAP,
-	TEXT_EDITOR_APP,
-	DEF_BIN_OPENER,
-	WRITING_APPS,
 
 	ABOUT_STR,
 	BACKGROUND_IMAGE_URL,

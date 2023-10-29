@@ -1,2 +1,8 @@
+#ignore dotfiles
 .*
+#ignore this locally configured symlink to a folder of videos
+/vids
+#keep .gitignore
 !.gitignore
+#Keep all mount listings
+!.list.json
