@@ -641,8 +641,8 @@ const DESK_CONTEXT_MENU=[
 	"\u{1f5b3}\u{2009}\xa0Terminal::Alt+t",()=>{open_terminal()},
 	"\u{1f4ca}\xa0\xa0About",()=>{make_popup({WIDE:true,STR: ABOUT_STR, TIT: "About"});},
 
-"XMark\xa0Test __XMARK__",()=>{log(12345)},
-"Check\xa0Test __CHECK__",()=>{log(12345)}
+//"XMark\xa0Test __XMARK__",()=>{log(12345)},
+//"Check\xa0Test __CHECK__",()=>{log(12345)}
 
 ];
 //»
