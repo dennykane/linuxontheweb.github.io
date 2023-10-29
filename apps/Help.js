@@ -26,7 +26,7 @@ Append a css color "flag" to the url. If it is a hex value, it should be 3 or 6 
 <h2>Keyboard shortcuts</h2>
 <hr>
 <h3>Show the desktop: Alt+d</h3>
-<p>This toggles between the desktop states such that the windows are either visible or hidden.
+<p>This toggles between the two desktop states such that the windows are either visible or temporarily hidden.
 <hr>
 <h3>Toggling taskbar hiding: Alt+b</h3>
 <p>When the taskbar is hidden, it will "unhide" when the mouse is within a certain threshold of
