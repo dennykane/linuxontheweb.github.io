@@ -198,15 +198,11 @@ this.onkeydown=(e,k)=>{
 	}
 };
 this.get_context = function() {
-//log(document.activeElement);
 	if (view_only) return [];
 	area.blur();
-//setTimeout(()=>{
-//log(document.activeElement);
-//}, 500);
 	let as="";
 	if (!topwin.fullpath) as = "\xa0as...";
-	let arr = [`Save${as}`, save_context_cb]
+	let arr = [`Save${as}::Ctrl+s`, save_context_cb]
 	if (!topwin.fullpath){
 		let ext = EXTENSIONS[USE_EXT];
 		arr.push("Set\xa0Ext");
