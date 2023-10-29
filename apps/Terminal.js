@@ -954,6 +954,9 @@ this.execute=async(str, if_script)=>{//«
 
 //Anything with internal slashes is treated as a path to a "shell script"
 		if (comword.match(/\x2f/)){
+			if (!comword.match(/\.sh$/i)){
+				return terr(`sh: ${comword}: only executing files with '.sh' suffix`, if_script);
+			}
 			let node = await fsapi.pathToNode(normPath(comword, term.cur_dir));
 			if (node){
 				let text = await node.text;
