@@ -49,3 +49,26 @@ To quickly toggle between opened and closed row folds with the Enter key, add th
 
 	nmap <enter> za
 
+
+### Inserting fold markers
+These are for easily inserting fold markers into the code file (from both normal and insert mode).
+
+To insert an open fold marker, invoked with Alt+o, add these lines:
+
+	execute "set <M-o>=\eo"
+	nnoremap <M-o> a//«<esc>
+	inoremap <M-o> //«
+
+To insert a close fold marker, invoked with Alt+c, add these lines:
+
+	execute "set <M-c>=\ec"
+	nnoremap <M-c> a//»<esc>
+	inoremap <M-c> //»
+
+To insert both an open and close fold marker, with a space in between,
+invoked with Alt+f, add these lines:
+
+	execute "set <M-f>=\ef"
+	nnoremap <M-f> a//«<enter><enter>//»<esc>
+	inoremap <M-f> //«<enter><enter>//»
+
