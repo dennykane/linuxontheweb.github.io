@@ -268,7 +268,8 @@ let std_keysym_map={
 //	"f_CAS":{"n":"toggle_fullscreen"},
 	"b_A":{"n":"toggle_taskbar"},
 	t_A:{n:"open_terminal"},
-	e_A:{n:"open_explorer"}
+	e_A:{n:"open_explorer"},
+	h_A:{n:"open_help"},
 };
 
 //»
@@ -629,6 +630,8 @@ _.del = function() {if (this.parentNode) this.parentNode.removeChild(this);}
 //»
 //Context Menu«
 const open_home_folder=()=>{open_file_by_path(globals.home_path);};
+const open_terminal = () => {open_app(TERMINAL_APP, {force: true});};
+const open_help=()=>{open_app("Help");}
 
 const DESK_CONTEXT_MENU=[
 
@@ -647,13 +650,15 @@ const DESK_CONTEXT_MENU=[
 		()=>{open_app("YourApp");},
 	],
 	"\u{1f4c1}\xa0\xa0Explorer::Alt+e",open_home_folder,
-	"\u{1f5b3}\u{2009}\xa0Terminal::Alt+t",()=>{open_terminal()},
+	"\u{1f5b3}\u{2009}\xa0Terminal::Alt+t", open_terminal,
+	"\u{2753}\xa0\xa0Help::Alt+h", open_help,
 	"\u{1f4ca}\xa0\xa0About",()=>{make_popup({WIDE:true,STR: ABOUT_STR, TIT: "About"});},
 
 //"XMark\xa0Test __XMARK__",()=>{log(12345)},
 //"Check\xa0Test __CHECK__",()=>{log(12345)}
 
 ];
+
 //»
 
 //Desktop«
@@ -1144,7 +1149,15 @@ const make_desktop = () => {//«
 	get_desk_grid();
 	set_desk_styles();
 	set_desk_events();
-	if (qObj.bgcol) desk_coldiv._bgcol= `#${qObj.bgcol}`;
+	let bgcol = qObj.bgcol;
+	if (bgcol) {
+		if (bgcol.match(/^[a-f0-9]+$/i) && (bgcol.length==3 || bgcol.length==6)){
+			desk_coldiv._bgcol= `#${bgcol}`;
+		}
+		else {
+			desk_coldiv._bgcol= `${bgcol}`;
+		}
+	}
 	else {
 		desk_coldiv.style.backgroundImage=DESK_GRADIENT;
 	}
@@ -5317,11 +5330,6 @@ const open_text_editor = () => {//«
 	return true;
 };//»
 
-const open_terminal = () => {//«
-	open_app(TERMINAL_APP, {force: true});
-	return true;
-};//»
-
 const raise_app_if_open=(appname)=>{//«
 	for (let w of windows){
 		if (w.appName==appname){
@@ -5863,18 +5871,14 @@ this.select=(if_toggle,if_open,if_force_new_win)=>{//«
 
 	let haveit = ICONS.includes(icn);
 	if (if_toggle&&haveit){
-//		icon_off(icn,true);
 		icn.off(true);
 	}
 	else if (if_open){
-//		if (haveit) icon_off(icn,true);
 		if (haveit) icn.off(true);
 		open_icon(icn, {force: if_force_new_win});
 	}
 	else if (!haveit){
 		if (ICONS.length&&(icn.parWin!==ICONS[0].parWin)) icon_array_off(1);
-//		ICONS.push(icn);
-//		icon_on(icn);
 		icn.on(true);
 	}
 	else open_icon(icn, {force: if_force_new_win});
@@ -7827,8 +7831,8 @@ or when there is an active context menu.
 				if (curicon) useicon = curicon;
 				else {
 					let icn = ICONS[0];
-					if (!desk.contains(icn)){
-	cwarn("There was an unattached icon in ICONS!");
+					if (!desk.contains(icn.iconElem)){
+cwarn("There was an unattached icon in ICONS!");
 						icon_array_off(13);
 						return;
 					}
@@ -7929,6 +7933,7 @@ return;
 //	}
 	if (kstr=="l_CAS") return console.clear();
 	if (kstr=="t_CAS") return keysym_funcs.test_function();
+	if (kstr=="e_CAS") taskbar.toggle_expert_mode();
 //	if (kstr=="t_CAS") return keysym_funcs.open_app("util.Titles");
 	if (kstr=="r_CAS") return reload_desk_icons_cb();
 	if (kstr=="k_CAS") {
@@ -7967,6 +7972,7 @@ maxed/fullscreened wins).
 */
 		if (!(cobj.overrides && cobj.overrides[kstr])){
 			if (kstr==="r_A"||kstr==="p_CAS") return win_reload();
+			if (kstr=="c_A"&&cwin.appName!==FOLDER_APP) return cwin.contextMenuOn();
 			if (!(is_full||is_max)) {
 				if (kstr.match(/^(RIGHT|LEFT|UP|DOWN)_S$/)) {
 					if (is_max) return;
@@ -7987,7 +7993,6 @@ maxed/fullscreened wins).
 //«
 	if (kstr == "ESC_") return handle_ESC();
 	else if (kstr=="1_CA") return open_text_editor();
-	else if (kstr=="e_CAS") taskbar.toggle_expert_mode();
 	else if (kstr=="w_CAS"){
 		for (let w of windows){
 			log(w.fullpath);
@@ -8076,6 +8081,7 @@ make_folder: make_folder,
 toggle_taskbar,
 toggle_fullscreen,
 open_terminal,
+open_help,
 toggle_win_chrome:()=>{CWIN&&CWIN.toggle_chrome()},
 toggle_layout_mode:toggle_layout_mode,
 save_window:()=>{let w=CWIN;if(!w||w.is_minimized)return true;w.app.onsave();return true;},
