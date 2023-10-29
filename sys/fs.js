@@ -1740,7 +1740,7 @@ const mountDir = async (name) => {//«
     if (!name) return "Mount name not given!";
     if (!name.match(/^[a-z][a-z0-9]*$/i)) return "Invalid mount name!";
 	if (mntkids[name]) return `${name}: Already mounted`;
-	let rv = await fetch(`/${name}/.list.json`);
+	let rv = await fetch(`/${name}/list.json`);
 	if (!rv.ok){
 		return `Could not get the listing for '${name}'`;
 	}
