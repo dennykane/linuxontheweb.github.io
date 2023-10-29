@@ -188,10 +188,10 @@ re-implement).
 <p>
 
 Advanced users might be interested in LOTW's (javascript) implementation of the
-vim editor. While there seem to be some versions of "real" vim floating around
-the web (especially WASM builds), the potential use cases of such a thing in
-LOTW do not currently seem very overwhelming due to the difficulties inherent
-in modifying the C source code and fully integrating it into the web platform.
+vim editor. While there seem to be some WASM versions of "real" vim floating
+around the web, the potential use cases of such a thing in LOTW do not
+currently seem very overwhelming due to the difficulties inherent in modifying
+the C source code and fully integrating it into the highly "quixotic" web platform.
 
 <hr>
 
