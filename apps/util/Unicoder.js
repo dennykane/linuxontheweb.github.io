@@ -3,7 +3,7 @@ import { globals } from "/sys/config.js";
 const{mkdv, mksp,mk,strnum, isarr, isstr, isnum, isobj, make, KC, kc, log, jlog, cwarn, cerr}=util;
 
 export const app = function(Win, Desk) {//«
-
+//log(Win);
 const CATEGORIES = [//«
 
 "Imagery",null,//«
@@ -315,6 +315,8 @@ let NAMES_MAP = [];
 //»
 
 //DOM«
+
+
 let Main = Win.main;
 Main._tcol="#ccc";
 //log(Main);
@@ -354,15 +356,16 @@ side_div._h= Main.clientHeight;
 main_div._h= Main.clientHeight;
 
 const mag_div = mkdv();
+mag_div._dis="none";
 if (1){
 
 const numsp = mkdv();
 numsp._fs=21;
 numsp._marb=20;
 const chdv = mkdv();
-chdv._fs=100;
-chdv._w=150;
-chdv._h=150;
+chdv._fs=50;
+chdv._w=50;
+chdv._h=50;
 const nmdv = mkdv();
 nmdv._w=150;
 nmdv._mart=20;
@@ -385,10 +388,47 @@ mag_div._pos="absolute";
 mag_div._x=0;
 mag_div._b=0;
 
+
+let textarea;
+let areadiv;
+textarea = make('textarea');
+textarea.id = `textarea_${Win.id}`;
+textarea._noinput = true;
+textarea.width = 1;
+textarea.height = 1;
+textarea.style.opacity = 0;
+areadiv = make('div');
+areadiv._pos="absolute";
+areadiv._loc(0,0);
+areadiv._z=-1;
+areadiv.appendChild(textarea);
+Main._add(areadiv);
+//log(areadiv);
+//    textarea.focus();
+//    this.textarea = textarea; 
 //»
 
 //Funcs«
 
+const docopy=s=>{
+	textarea.focus();
+	textarea.value = s;
+	textarea.select();
+	Desk.api.showOverlay(`Copied: ${s}`);
+	document.execCommand("copy")
+};
+const focus_first_tab=()=>{
+	let act = document.activeElement;
+	let all = Main.getElementsByClassName("tabbable");
+	for (let tab of all){
+		if (is_visible(tab)){
+			setTimeout(()=>{
+				tab.focus();
+			},50);
+			break;
+		}
+	}
+};
 const show_category=act=>{//«
 	side_div.scrollTop=0;
 	if (main_div.childNodes[0]) main_div.childNodes[0]._del();
@@ -397,8 +437,9 @@ const show_category=act=>{//«
 	let arr = categories[act.category];
 	for (let tr of arr) tr._dis="";
 	cur_category = [act,arr];
-	Main.focus();
+//	Main.focus();
 	side_div.style.minWidth = side_tab.clientWidth;
+focus_first_tab();
 };//»
 const is_visible = which => {//«
     let mr = Main.getBoundingClientRect();
@@ -437,7 +478,9 @@ const make_row=(nm,arr)=>{//«
 			return;
 		}
 		div = mkdv();
+//log(div);
 		div._dis="flex";
+//div.style.justifyContent="space-between";
 		div.style.flexWrap="wrap";
 		let mn = min.pi();
 		let mx = max.pi();
@@ -454,12 +497,27 @@ For example, this range takes at least a couples minutes minutes to render (2099
 */
 
 		for (let i=mn; i <= mx; i++){
-			let sp = mksp();
+			let sp = mkdv();
+			sp._dis="flex";
+			sp.style.flexDirection="column";
+			sp.style.justifyContent="space-between";
+			sp.style.alignItems="center";
+			sp._bor="1px dotted #aaa";
 			sp._pad= 5;
 			if (i<32) continue;
 			let numstr = i.toString(16);
 			let ch = eval('"\\u\{'+numstr+'}"');
-			sp.innerText=ch;
+			let chsp = mksp();
+			chsp.innerText = ch;
+			chsp.onclick=()=>{docopy(ch);};
+			let valsp = mksp();
+			valsp.style.fontSize="16px";
+			valsp.innerText = numstr;
+			valsp.onclick=()=>{
+				docopy(numstr);
+			};
+			sp.appendChild(chsp);
+			sp.appendChild(valsp);
 			div._add(sp);
 			sp.onmouseout=()=>{
 				mag_div._del();
@@ -472,6 +530,7 @@ For example, this range takes at least a couples minutes minutes to render (2099
 		}
 	};
 	tr.onclick = tr.render;
+//log(tr);
 	return tr;
 };
 //»
@@ -543,8 +602,8 @@ log(nm,add);
 //»
 
 make_table(side_tab);
-side_div.style.minWidth = side_tab.clientWidth;
-
+side_div.style.minWidth = side_tab.clientWidth+"px";
+Win.status_bar.innerHTML=`Arrow keys to navigate | Enter to select | Click to copy symbols or hex values`;
 /*
 let allnameslen = ALLNAMES.length;
 for (let i=0; i < allnameslen;i+=2) {
@@ -561,20 +620,10 @@ let n = ALLNAMES[i+1];
 this.onkeydown=(e,s)=>{//«
 
 let act = document.activeElement;
-if (s==="TAB_"||s==="TAB_S"){
+if (s==="DOWN_"||s==="UP_"){
 	e.preventDefault();
-	if (act===Main||(act.className=="tabbable"&&!is_visible(act))){
-		let all = Main.getElementsByClassName("tabbable");
-		if (s=="TAB_S") all.reverse();
-		for (let tab of all){
-			if (is_visible(tab)){
-				tab.focus();
-				break;
-			}
-		}
-	}
-	else if (act.className=="tabbable"){
-		if (s=="TAB_S"){
+	if (act.className=="tabbable"){
+		if (s=="UP_"){
 			let prev = act.previousSibling;
 			while (prev&&prev._dis=="none") prev = prev.previousSibling;
 			if (prev) prev.focus();
@@ -590,6 +639,7 @@ if (s==="TAB_"||s==="TAB_S"){
 }
 
 else if (s=="LEFT_"){
+e.preventDefault();
 	if (cur_category){
 		if (mag_div.parentNode) mag_div._del();
 		if (main_div.childNodes[0]) main_div.childNodes[0]._del();
@@ -602,14 +652,13 @@ else if (s=="LEFT_"){
 		side_div.style.minWidth = side_tab.clientWidth;
 	}
 }
-else if (s=="ENTER_"){
-
+else if (s=="RIGHT_"||s=="ENTER_"){
+e.preventDefault();
 if (act.className!="tabbable") return;
 
 if (toplevel_showing){
 	if (act.category) show_category(act);
 	else act.render();
-	
 }
 else{
 	act.render&&act.render();
@@ -641,6 +690,7 @@ this.onescape=()=>{
 };
 this.onfocus=()=>{
 	Main.focus();
+	focus_first_tab();
 };
 this.onresize=()=>{
 
@@ -651,9 +701,9 @@ main_div._h= Main.clientHeight;
 
 //»
 
-setTimeout(()=>{
-	Main.focus();
-},0);
+//setTimeout(()=>{
+//	Main.focus();
+//},0);
 
 
 

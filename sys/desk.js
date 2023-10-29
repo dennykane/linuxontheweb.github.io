@@ -629,6 +629,7 @@ _.del = function() {if (this.parentNode) this.parentNode.removeChild(this);}
 //»
 //Context Menu«
 const open_home_folder=()=>{open_file_by_path(globals.home_path);};
+
 const DESK_CONTEXT_MENU=[
 
 	"\u{1f381}\xa0\xa0New",[
@@ -636,6 +637,14 @@ const DESK_CONTEXT_MENU=[
 		()=>{make_new_icon(desk, FOLDER_APP)},
 		"Text File",
 		()=>{make_new_icon(desk, "Text")}
+	],
+
+//1d6a8 is a fancy A 
+	'\u{2699}\xa0\xa0Applications',[
+		"Unicode\xa0Symbols",
+		()=>{open_app("util.Unicoder");},
+		"Your\xa0app",
+		()=>{open_app("YourApp");},
 	],
 	"\u{1f4c1}\xa0\xa0Explorer::Alt+e",open_home_folder,
 	"\u{1f5b3}\u{2009}\xa0Terminal::Alt+t",()=>{open_terminal()},
