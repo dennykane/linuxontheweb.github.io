@@ -1,5 +1,7 @@
 # Linux on the Web (LOTW)
 
+![LOTW image](https://raw.githubusercontent.com/linuxontheweb/linuxontheweb.github.io/main/www/lotw48.png)
+
 Linux used to be fun because expectations were low and possibilities were high. 
 The online communities that gathered around it were truly pleasurable to be a part of.
 I hope to bring those same feelings back in the context of web development.
