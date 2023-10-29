@@ -311,6 +311,7 @@ const toplevel = [];
 let toplevel_showing = true;
 let cur_category;
 let NAMES_MAP = [];
+let last_focused;
 
 //»
 
@@ -322,7 +323,7 @@ Main._tcol="#ccc";
 //log(Main);
 Main.top.title="Unicoder";
 const main = mkdv();
-Main.tabIndex="-1";
+//Main.tabIndex="-1";
 main._dis="flex";
 main._bgcol="#000";
 Main._fs=32;
@@ -410,12 +411,16 @@ Main._add(areadiv);
 
 //Funcs«
 
-const docopy=s=>{
+const docopy=(s, elem)=>{
+	let act = document.activeElement;
 	textarea.focus();
 	textarea.value = s;
 	textarea.select();
 	Desk.api.showOverlay(`Copied: ${s}`);
 	document.execCommand("copy")
+	setTimeout(()=>{
+		if (last_focused) last_focused.focus();
+	},50);
 };
 const focus_first_tab=()=>{
 	let act = document.activeElement;
@@ -424,6 +429,9 @@ const focus_first_tab=()=>{
 		if (is_visible(tab)){
 			setTimeout(()=>{
 				tab.focus();
+				tab.onblur=()=>{
+					last_focused = tab;
+				};
 			},50);
 			break;
 		}
@@ -509,11 +517,15 @@ For example, this range takes at least a couples minutes minutes to render (2099
 			let ch = eval('"\\u\{'+numstr+'}"');
 			let chsp = mksp();
 			chsp.innerText = ch;
-			chsp.onclick=()=>{docopy(ch);};
+			chsp.onclick=(e)=>{
+				e.stopPropagation();
+				docopy(ch);
+			};
 			let valsp = mksp();
 			valsp.style.fontSize="16px";
 			valsp.innerText = numstr;
-			valsp.onclick=()=>{
+			valsp.onclick=(e)=>{
+				e.stopPropagation();
 				docopy(numstr);
 			};
 			sp.appendChild(chsp);
@@ -603,7 +615,7 @@ log(nm,add);
 
 make_table(side_tab);
 side_div.style.minWidth = side_tab.clientWidth+"px";
-Win.status_bar.innerHTML=`Arrow keys to navigate | Enter to select | Click to copy symbols or hex values`;
+Win.status_bar.innerHTML=`Arrow keys to navigate | Enter to select | Click to copy`;
 /*
 let allnameslen = ALLNAMES.length;
 for (let i=0; i < allnameslen;i+=2) {
@@ -626,16 +638,20 @@ if (s==="DOWN_"||s==="UP_"){
 		if (s=="UP_"){
 			let prev = act.previousSibling;
 			while (prev&&prev._dis=="none") prev = prev.previousSibling;
-			if (prev) prev.focus();
+			if (prev) {
+				prev.focus();
+				prev.onblur=()=>{last_focused = prev;};
+			}
 		}
 		else{
 			let next = act.nextSibling;
 			while (next&&next._dis=="none") next = next.nextSibling;
-			if (next) next.focus();
+			if (next) {
+				next.focus();
+				next.onblur=()=>{last_focused = next;};
+			}
 		}
-		
 	}
-//Main.scrollTop=0;
 }
 
 else if (s=="LEFT_"){
@@ -689,7 +705,7 @@ this.onescape=()=>{
 	return false;
 };
 this.onfocus=()=>{
-	Main.focus();
+//	Main.focus();
 	focus_first_tab();
 };
 this.onresize=()=>{
