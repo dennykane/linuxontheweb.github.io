@@ -10,7 +10,6 @@ main._fs=18;
 //Help <html>«
 main.innerHTML=`
 <div style="margin: 15px;">
-<h3></h3>
 <hr><hr>
 <h2>System configuration</h2>
 <hr>
@@ -197,23 +196,6 @@ the C source code and fully integrating it into the highly "quixotic" web platfo
 
 <hr>
 
-<h3>Features vs code maintainability</h3>
-
-<p>Previous versions of this project attempted to maximize the number of
-features available in the terminal application, to make the LOTW shell somewhat compatible
-with "real" shells like bash.  But the code was not very understandable (it was
-mostly developed in the years before Promises and async/await, with a tendency
-towards "callback hellishness"). So the current philosophy is to be slower and
-more circumspectful in order to maximize the longer-term prospects of the
-project.
-
-
-
-<h3></h3>
-<hr>
-<h3></h3>
-<h3></h3>
-<h3></h3>
 </div>
 `;
 //»
