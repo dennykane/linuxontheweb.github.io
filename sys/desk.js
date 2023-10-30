@@ -7988,6 +7988,10 @@ cwarn("There was an unattached icon in ICONS!");
 		else if (kstr=="BACK_C"&&ICONS.length)return delete_selected_files();
 		else if (kstr=="a_C") return select_all_icons();
 		else if (kstr=="s_" && !cwin) return switch_icons();
+		else if (kstr=="p_"&&CUR.ison()) {
+			let icn = CUR.geticon();
+			if (icn) return show_node_props(icn.node);
+		}
 		else if (kstr.match(/_$/)){
 			if (check_input()) return;
 			if (kstr=="m_") return move_icon_array();
@@ -8275,12 +8279,44 @@ capi.detectClick(document.body, 666, ()=>{//«
 //»
 //Util«
 
-const focus_editing=e=>{
+const show_node_props=async(node)=>{//«
+	const pop=()=>{popup(s+"</div>",{title: "Node properties"});};
+	let s = '<div style="user-select: text;">'+node.name+"<br><br>";
+	let app = node.appName;
+	if (app == FOLDER_APP) {
+		s+=`Folder`;
+		return pop();
+	}
+	if (node.type!==FS_TYPE) {
+		if (app) s+=app+"<br><br>";
+		if (Number.isFinite(node.size)) s+=`${node.size} bytes`;
+		return pop();
+	}
+	let file = await node._file;
+	if (!file) {
+		if (!app) {
+cerr("NO _file or appName property on the node", node);
+			s+="???";
+		}
+		return pop();
+	}
+	s+=`${file.size} bytes`;
+	let a = (file.lastModifiedDate+"").split(" ");
+	s+=`<br><br>Last Modified:<br>${a[0]} ${a[1]} ${a[2]} ${a[3]} ${a[4]}<br>`;
+	let mod = file.lastModified;
+	let diff = ((new Date()).getTime() - file.lastModified)/1000;
+	if (diff > 86400) s+=`${Math.floor(diff/86400)} days ago`;
+	else if (diff > 3600) s+=`${Math.floor(diff/3600)} hrs ago`;
+	else if (diff > 60) s+=`${Math.floor(diff/60)} mins ago`;
+	else s+=`${Math.floor(diff)} secs ago`;
+	pop();
+};//»
+const focus_editing=e=>{//«
 	if(e)nopropdef(e);
 	if(CEDICN){
 		CEDICN.area.focus()
 	}
-}
+}//»
 const set_context_menu = (loc, opts={}) => {//«
 	CG.on();
 	let dx = 0;

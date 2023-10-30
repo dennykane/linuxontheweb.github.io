@@ -129,22 +129,28 @@ let observer;
 //»
 
 //Funcs«
+
 let num_div = mkdv();
 let cur_div = mkdv();
+let cur_sp = mksp();
+let MAX_WID = 100;
+cur_div._add(cur_sp);
+cur_div.style.maxWidth = `${MAX_WID}px`;
+cur_div._over="hidden";
 let mess_div = mkdv();
 statbar._w = "100%";
 statbar._dis="flex";
 statbar.style.justifyContent="space-between";
-//statbar.style.justifyContent="center";
 statbar._add(mess_div);
 statbar._add(cur_div);
 statbar._add(num_div);
 //log(statbar);
 const statnum=(s)=>{
-	num_div.innerHTML=`${s}\xa0`;
+	num_div.innerHTML = `${s}\xa0`;
 };
 const statcur=(s)=>{
-	cur_div.innerHTML=s;
+	cur_sp.innerHTML = s;
+//log(cur_sp.getBoundingClientRect().width);
 };
 const NOOP=()=>{};
 
