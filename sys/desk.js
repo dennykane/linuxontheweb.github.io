@@ -1,3 +1,7 @@
+/*Very late October 2023: Added makeScrollable method onto Window's
+This sets the tabIndex property of the main div to "-1", and adds
+the isScrollable property to the Window. 
+*/
 /*«Late October 2023: Adding 9 workspaces
 Toggle between workspaces with Ctrl+Alt+Shift+[1-9]
 If an icon is being opened (double-clicked) that already has an associated window in another
@@ -182,13 +186,13 @@ let icon_num = 0;
 let VERNUM=1;
 let OVERLAY_MS = 1500;
 let SWITCHER_OFF_DELAY_MS = OVERLAY_MS;
-let WIN_MIN_TRANS_SECS="0.25";
+let WIN_TRANS_SECS="0.25s";
 let TASKBAR_TRANS_SECS = 0.125;
 
 let MS_BETWEEN_BIG_FOLDER_BATCHES = 0;
 let BIG_FOLDER_BATCH_SIZE = 1000;
 let MAX_FILE_SIZE = 1024*1024;
-let SHOW_TASKBAR_DELAY = 250;
+let SHOW_TASKBAR_DELAY_MS = 666;
 let num_win_cycles = 0;
 const RS_TIMEOUT = 300;
 let rs_timer = null;
@@ -308,6 +312,7 @@ let	HI_WIN_Z = MIN_WIN_Z;
 const SAVEAS_BOTTOM_HGT = 30;
 
 let APP_BG_COL = "#271313";
+let APP_TEXT_COL = "#ccc";
 
 const TASKBAR_HGT = 26;
 const TASK_BAR_COL_RGB="8,8,24";
@@ -948,13 +953,13 @@ drag_timeout = setTimeout(()=>{
 					if (taskbar_timer) return;
 					taskbar_timer = setTimeout(()=>{
 						taskbar.taskbarElem._b=0;
-					}, SHOW_TASKBAR_DELAY);
+					}, SHOW_TASKBAR_DELAY_MS);
 				}
 				else {
 					if (taskbar_timer) return;
 					taskbar_timer = setTimeout(()=>{
 						taskbar.taskbarElem._z=CG_Z-1;
-					}, SHOW_TASKBAR_DELAY);
+					}, SHOW_TASKBAR_DELAY_MS);
 				}
 			}
 			else {
@@ -1362,7 +1367,7 @@ this.addwin=(w)=>{//«
 		t._z=CG_Z-1;
 		desk._add(t);
 		rect = w.winElem._gbcr();
-		t.style.transition = `transform ${WIN_MIN_TRANS_SECS}s ease 0s, left ${WIN_MIN_TRANS_SECS}s ease 0s, top ${WIN_MIN_TRANS_SECS}s ease 0s, width ${WIN_MIN_TRANS_SECS}s ease 0s`;
+		t.style.transition = `transform ${WIN_TRANS_SECS} ease 0s, left ${WIN_TRANS_SECS} ease 0s, top ${WIN_TRANS_SECS} ease 0s, width ${WIN_TRANS_SECS} ease 0s`;
 		requestAnimationFrame(()=>{
 			t.ontransitionend=()=>{
 				w.winElem._op=1;
@@ -1384,7 +1389,7 @@ this.addwin=(w)=>{//«
 	t._loc(rect.left,rect.top);
 	t._bor="1px solid #ccc";
 	t._z=CG_Z-1;
-	t.style.transition = `transform ${WIN_MIN_TRANS_SECS}s ease 0s, left ${WIN_MIN_TRANS_SECS}s ease 0s, top ${WIN_MIN_TRANS_SECS}s ease 0s, width ${WIN_MIN_TRANS_SECS}s ease 0s`;
+	t.style.transition = `transform ${WIN_TRANS_SECS} ease 0s, left ${WIN_TRANS_SECS} ease 0s, top ${WIN_TRANS_SECS} ease 0s, width ${WIN_TRANS_SECS} ease 0s`;
 	requestAnimationFrame(()=>{
 		let c = mwb.lastChild;
 		let x = c._gbcr().left;
@@ -2956,6 +2961,7 @@ const save_icon_editing = async() => {//«
 	let val = CEDICN.name;
 	let holdname = val;
 	let checkit = CEDICN.area.value.trim().replace(RE_SP_PL, " ").replace(RE_SP_G, "\u00A0");
+	if (!checkit) return abort("Not creating the icon");
 	let checkithold = checkit;
 	if (CEDICN.ext) {
 		checkit += "." + CEDICN.ext;
@@ -3029,8 +3035,10 @@ const init_icon_editing = icn => {//«
 		e.stopPropagation();
 		area.select();
 	});
-	area.select();
-	focus_editing();
+	setTimeout(()=>{
+		area.select();
+		focus_editing();
+	},50);
 };//»
 const update_all_paths = (oldpath, newpath) => {//«
 	const replacepath=(w, oldpath, newpath)=>{
@@ -3377,7 +3385,7 @@ const Window = function(arg){//«
 	main._w=usew;
 	main._h=useh;
 	main._bgcol= APP_BG_COL;
-	main._tcol= "#000";
+	main._tcol= APP_TEXT_COL;
 	main._bor= "0px solid transparent";
 	main._pos= "relative";
 	main.className="mainwin";
@@ -3405,8 +3413,6 @@ const Window = function(arg){//«
 	namespan.id="namespan_"+winid;
 	namespan._fs= 12;
 	namespan._padt=1;
-	namespan["tcol.on"] = WINNAME_COL_ON;
-	namespan["tcol.off"] = WINNAME_COL_OFF;
 	namespan.title = winid;
 	titlebar.label = namespan;
 	title._add(namespan);
@@ -3719,12 +3725,14 @@ Object.defineProperty(this, "title", {//«
 	this.img_div = img_div;
 	if (arg.APPARGS) this.nosave = true;
 	else this.nosave = null;
-	this["bgcol.on"]=WIN_COL_ON;
-	this["bgcol.off"]=WIN_COL_OFF;
 
 //»
 //Methods«
 
+	this.makeScrollable=()=>{//«
+		main.tabIndex="-1";
+		this.isScrollable = true;
+	};//»
 	this.up=()=>{//«
 		if (this.is_minimized) this.unminimize(true);
 		win.style.zIndex = ++HI_WIN_Z;
@@ -3770,17 +3778,20 @@ Object.defineProperty(this, "title", {//«
 		document.activeElement.blur();
 		this.img_div._op= 0.75;
 		this.namespan._fw = "bold";
-		this.namespan._tcol= this.namespan["tcol.on"];
-		this.winElem._bgcol= this["bgcol.on"];
+		this.namespan._tcol= WINNAME_COL_ON;
+		this.winElem._bgcol= WIN_COL_ON;
 		if (this.butdiv) this.butdiv.on();
 		if (this.movediv) this.movediv.on();
 		let winobj = this.app;
 		if (winobj) {
-			if (winobj.onfocus&&!this.popup) winobj.onfocus();
+			if (winobj.onfocus&&!this.popup) {
+				winobj.onfocus();
+			}
 		}
 		else{
-	cwarn(`window_on(): NO WINOBJ for this`, this);
+cwarn(`window_on(): NO WINOBJ for this`, this);
 		}
+		if (this.isScrollable) this.main.focus();
 		if (this.is_minimized) this.taskbar_button.onmousedown();
 		if (CWIN.child_win) CWIN.child_win.on();
 
@@ -3793,8 +3804,8 @@ Object.defineProperty(this, "title", {//«
 		}
 		this.img_div._op= 0.5;
 		this.namespan._fw = "";
-		this.namespan._tcol= this.namespan["tcol.off"];
-		this.winElem._bgcol = this["bgcol.off"];
+		this.namespan._tcol= WINNAME_COL_OFF;
+		this.winElem._bgcol = WIN_COL_OFF;
 		if (this.butdiv) this.butdiv.off();
 		if (this.movediv) this.movediv.off();
 		if (this.area) {
@@ -3803,6 +3814,7 @@ Object.defineProperty(this, "title", {//«
 		}
 		this.winElem.style.boxShadow = "";
 		if (this.app && this.app.onblur) this.app.onblur();
+		if (this.isScrollable) this.main.blur();
 		if (this == CWIN) CWIN = null;
 		if (this.is_minimized) {
 			this.taskbar_button.onmouseup();
@@ -3921,8 +3933,8 @@ Object.defineProperty(this, "title", {//«
 			delete this.is_transitioning;
 		};
 		if (this.is_tiled || this.is_minimized) return;
-		win.style.transition = "left 0.2s,top 0.2s";
-		main.style.transition = "width 0.2s,height 0.2s";
+		win.style.transition = `left ${WIN_TRANS_SECS},top ${WIN_TRANS_SECS}`;
+		main.style.transition = `width ${WIN_TRANS_SECS},height ${WIN_TRANS_SECS}`;
 		if (this.is_fullscreen) {
 			win._bor= this.bor_hold;
 			delete this.bor_hold;
@@ -3973,8 +3985,8 @@ Object.defineProperty(this, "title", {//«
 			this.is_transitioning = null;
 			delete this.is_transitioning;
 		};
-		win.style.transition = "left 0.2s, top 0.2s";
-		main.style.transition = "width 0.2s, height 0.2s";
+		win.style.transition = `left ${WIN_TRANS_SECS}, top ${WIN_TRANS_SECS}`;
+		main.style.transition = `width ${WIN_TRANS_SECS}, height ${WIN_TRANS_SECS}`;
 		let max = this.max_button;
 		if (!this.is_maxed) {
 			this.maxholdw = main._w;
@@ -4184,7 +4196,6 @@ Object.defineProperty(this, "title", {//«
 		this.app.onresize();
 		return true;
 	}//»
-
 this.select_icons = () =>{//«
 //let drag_div = this.drag_div;
 let drect = this.drag_div.getBoundingClientRect();
@@ -7207,7 +7218,13 @@ const make_popup = (arg) => {//«
 
 			if (win) {
 				delete win.popup;
-				if (win===CWIN&&win.app&&win.app.onfocus) win.app.onfocus();
+				if (win===CWIN&&win.app&&win.app.onfocus) {
+					win.app.onfocus();
+					if (win.isScrollable) {
+cwarn("win.isScrollable test passed: WOPMKLYTG");
+						win.main.focus();
+					}
+				}
 			}
 			else CPR = null;
 			return;
@@ -7227,7 +7244,13 @@ const make_popup = (arg) => {//«
 		}
 		if (win) {
 			delete win.popup;
-			if (win===CWIN&&win.app&&win.app.onfocus)  win.app.onfocus();
+			if (win===CWIN&&win.app&&win.app.onfocus) {
+				win.app.onfocus();
+				if (win.isScrollable) {
+cwarn("win.isScrollable test passed: WPMKIYTGH");
+					win.main.focus();
+				}
+			}
 		}
 		else {
 			CPR = null;
@@ -7711,6 +7734,8 @@ or when there is an active context menu.
 
 //We have an icon with a <textarea> whose name is being created or updated
 	if (CEDICN) {//«
+		if (act !== CEDICN.area) CEDICN.area.focus();
+
 		if (kstr == "ESC_"){
 			if (CEDICN.nodelete) {
 				CEDICN.nodelete = undefined;
@@ -7822,7 +7847,6 @@ or when there is an active context menu.
 
 //Desktop and folder specific functions dealing with icons or the icon cursor:
 	if (!cwin || cwin.appName==FOLDER_APP){//«
-
 		if (kstr == "c_A") {//«
 			let curicon;
 			if (CUR.ison()) curicon = CUR.geticon();
@@ -7872,7 +7896,9 @@ cwarn("There was an unattached icon in ICONS!");
 			else if (kstr==="HOME_") mn.scrollTop=0;
 			else mn.scrollTop=mn.scrollHeight;
 			mn.onscroll=e=>{
-				select_first_visible_folder_icon(cwin);
+				if (CUR.ison()) {
+					select_first_visible_folder_icon(cwin);
+				}
 			};
 			return;
 		}//»
@@ -8188,7 +8214,12 @@ capi.detectClick(document.body, 666, ()=>{//«
 //»
 //Util«
 
-const focus_editing=e=>{if(e)nopropdef(e);if(CEDICN)CEDICN.area.focus()}
+const focus_editing=e=>{
+	if(e)nopropdef(e);
+	if(CEDICN){
+		CEDICN.area.focus()
+	}
+}
 const set_context_menu = (loc, opts={}) => {//«
 	CG.on();
 	let dx = 0;

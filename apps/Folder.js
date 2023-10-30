@@ -92,7 +92,8 @@ Main._add(dd);
 //Main._bgcol="#544";
 Main._overy="auto";
 Main._overx="hidden";
-Main.tabIndex="-1";
+Win.makeScrollable();
+//Main.tabIndex="-1";
 //Main._pad=5;
 const icondv = mkdv();
 icondv.id=`icondiv_${winid}`;
@@ -496,8 +497,8 @@ this.onresize = function() {//«
 
 }//»
 
-this.onfocus=()=>{Main.focus();};
-this.onblur=()=>{Main.blur();};
+//this.onfocus=()=>{Main.focus();};
+//this.onblur=()=>{Main.blur();};
 this.onappinit=(arg, prevpaths)=>{
 prev_paths = prevpaths;
 path = arg;

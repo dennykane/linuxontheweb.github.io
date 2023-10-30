@@ -6,6 +6,8 @@ main._tcol="#ccc";
 main._overy="scroll";
 main.style.userSelect="text";
 main._fs=18;
+
+//Help <html>«
 main.innerHTML=`
 <div style="margin: 15px;">
 <h3></h3>
@@ -214,29 +216,9 @@ project.
 <h3></h3>
 </div>
 `;
+//»
 
-this.onkeydown=(e, s)=>{
-if (s=="UP_"){
-main.scrollTop-=35;
-}
-else if (s=="DOWN_"){
-main.scrollTop+=35;
-}
-else if (s=="PGUP_"){
-main.scrollTop-=(main.clientHeight-15);
-}
-else if (s=="PGDOWN_"){
-main.scrollTop+=(main.clientHeight-15);
-}
-else if (s=="HOME_"){
-main.scrollTop=0;
-}
-else if (s=="END_"){
-main.scrollTop=main.scrollHeight;
-}
-
-
-};
+Win.makeScrollable();
 
 }
 
