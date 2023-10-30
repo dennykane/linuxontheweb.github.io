@@ -1800,6 +1800,7 @@ if (isMobile) return;
 if (!e.isFake) nopropdef(e);
 if (have_window_cycle) return;
 let menu = [//«
+"Properties",()=>{show_node_props(node);},
 "Rename", () => {
 	setTimeout(() => {
 		icn.nodelete = true;
