@@ -8470,7 +8470,6 @@ console.log(mess);
 			}
 		}
 	}//»
-	document.title = "LOTW desktop";
 	document.onkeyup = null;
 	let home_path = globals.home_path;
 	make_desktop();
