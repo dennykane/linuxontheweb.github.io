@@ -8280,7 +8280,7 @@ capi.detectClick(document.body, 666, ()=>{//«
 //Util«
 
 const show_node_props=async(node)=>{//«
-	const pop=()=>{popup(s+"</div>",{title: "Node properties"});};
+	const pop=()=>{popup(s+"</div>",{title: "Node properties", wide: true});};
 	let s = `<div style="user-select: text;">Name: ${node.name}<br><br>Path: ${node.path}<br><br>`;
 	let app = node.appName;
 	if (app == FOLDER_APP) {
