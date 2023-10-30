@@ -8280,15 +8280,16 @@ capi.detectClick(document.body, 666, ()=>{//«
 //Util«
 
 const show_node_props=async(node)=>{//«
-	const pop=()=>{popup(s+"</div>",{title: "Node properties", wide: true});};
+	const pop=()=>{popup(s+"</div>",{title: "File node properties", wide: true});};
 	let s = `<div style="user-select: text;">Name: ${node.name}<br><br>Path: ${node.path}<br><br>`;
 	let app = node.appName;
 	if (app == FOLDER_APP) {
-		s+=`Folder`;
+		s+=`App: Folder`;
 		return pop();
 	}
+	if (!app) app="[None]";
+	s+=`App: ${app}<br><br>`;
 	if (node.type!==FS_TYPE) {
-		if (app) s+=app+"<br><br>";
 		if (Number.isFinite(node.size)) s+=`Size: ${node.size} bytes`;
 		return pop();
 	}
