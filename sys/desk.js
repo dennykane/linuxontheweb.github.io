@@ -3730,7 +3730,7 @@ Object.defineProperty(this, "title", {//«
 //»
 //Methods«
 
-this.setWinArgs=args=>{
+this.setWinArgs=args=>{//«
 //	let args={BOTTOMPAD: w.bottompad, X: w.winElem._x, Y:w.winElem._y, WID: w.main._w, HGT: w.main._h};
 	args.BOTTOMPAD = this.bottompad;
 	args.X = win._x;
@@ -3745,7 +3745,7 @@ this.setWinArgs=args=>{
 		args.isFullscreen = true;
 		args.holdDims={W: this.fsholdw, H: this.fsholdh, X: this.fsholdx, Y: this.fsholdy, BOR: this.bor_hold};
 	}
-};
+};//»
 	this.makeScrollable=()=>{//«
 		main.tabIndex="-1";
 		this.isScrollable = true;
@@ -5655,15 +5655,12 @@ curElem._h=IGSY;
 curElem._dis="none";
 curElem._op=1;
 curElem._mart=-1.5;
-const show = ()=>{
-	curElem._op=1;
-	curElem._dis="";
-	curElem.scrollIntoViewIfNeeded();
-};
 this.on=(is_tog)=>{
 	if (is_tog) cur_showing = true;
 	else if (!cur_showing) return;
-	show();
+	curElem._op=1;
+	curElem._dis="";
+	curElem.scrollIntoViewIfNeeded();
 	this.set(4);
 };
 this.off=(is_tog)=>{
@@ -5740,7 +5737,6 @@ this.todesk=()=>{//«
 	}
 	desk._add(curElem);
 	let pos = desk.lastcurpos;
-	show();
 	if (pos) this.setpos(pos.X, pos.Y);
 	else this.set(5);
 };//»
