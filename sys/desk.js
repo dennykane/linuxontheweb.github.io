@@ -1,6 +1,8 @@
-/*Very late October 2023: Added makeScrollable method onto Window's
-This sets the tabIndex property of the main div to "-1", and adds
-the isScrollable property to the Window. 
+/*Very late October 2023: 
+
+Added makeScrollable method onto Window's This sets the tabIndex property of
+the main div to "-1", and adds the isScrollable property to the Window. 
+
 */
 /*«Late October 2023: Adding 9 workspaces
 Toggle between workspaces with Ctrl+Alt+Shift+[1-9]
@@ -144,6 +146,7 @@ let fs, fsapi;
 let pathToNode;
 const NOOP=()=>{}
 //Flags/Modes«
+
 let debug_localstorage=false;
 let show_desktop_during_win_cycle = true;
 let win_cycle_wins_hidden = false;
@@ -1326,7 +1329,8 @@ this.show=(if_temp)=>{//«
 	}
 };//»
 this.toggle_expert_mode = ()=>{//«
-	if (!(globals.is_local||qObj.expert)) return;
+//	if (!(globals.is_local||qObj.expert)) return;
+	if (!dev_mode_ok()) return;
 	if (taskbar_expert_mode){
 		taskbar_expert_mode = false;
 		delete localStorage[lst_expert];
@@ -2758,7 +2762,9 @@ cerr("Where is the minimized window?");
 		if (w && (w.saver || (w!==desk && !force && folders_open_in_same_window))){
 			let obj;
 			if (w.saver) obj={SAVER: w.saver};
-			icn.winargs={BOTTOMPAD: w.bottompad, X: w.winElem._x, Y:w.winElem._y, WID: w.main._w, HGT: w.main._h};
+			let args = {};
+			w.setWinArgs(args);
+			icn.winargs = args;
 			w.easyKill();
 			win = open_new_window(icn, null, obj);
 		}
@@ -3661,7 +3667,10 @@ layout.
 	rsdiv.draggable=true;
 	rsdiv.ondragstart=e=>{
 		e.preventDefault();
-		if (this.is_maxed) max.reset();
+		if (this.is_maxed) {
+			max.reset();
+			this.is_maxed = false;
+		}
 		CRW = thiswin;
 		if (CRW != CWIN) CRW.on();
 		desk.style.cursor = "nwse-resize";
@@ -3684,6 +3693,9 @@ layout.
 Object.defineProperty(this, "fullpath", {//«
 	get: ()=>{
 		if (!this.name) {
+cwarn("This window has no name!!!");
+//if (arg.FULLPATH) return arg.FULLPATH.regpath();
+//log(this);
 			return null;
 		}
 		let path = (this.path ? this.path : "/") + "/" + this.name;
@@ -3729,6 +3741,22 @@ Object.defineProperty(this, "title", {//«
 //»
 //Methods«
 
+this.setWinArgs=args=>{
+//	let args={BOTTOMPAD: w.bottompad, X: w.winElem._x, Y:w.winElem._y, WID: w.main._w, HGT: w.main._h};
+	args.BOTTOMPAD = this.bottompad;
+	args.X = win._x;
+	args.Y = win._y;
+	args.WID = main._w;
+	args.HGT = main._h;
+	if (this.is_maxed){
+		args.isMaxed = true;
+		args.holdDims={W: this.maxholdw, H: this.maxholdh, X: this.maxholdx, Y: this.maxholdy};
+	}
+	if (this.is_fullscreen){
+		args.isFullscreen = true;
+		args.holdDims={W: this.fsholdw, H: this.fsholdh, X: this.fsholdx, Y: this.fsholdy, BOR: this.bor_hold};
+	}
+};
 	this.makeScrollable=()=>{//«
 		main.tabIndex="-1";
 		this.isScrollable = true;
@@ -3935,6 +3963,7 @@ cwarn(`window_on(): NO WINOBJ for this`, this);
 		if (this.is_tiled || this.is_minimized) return;
 		win.style.transition = `left ${WIN_TRANS_SECS},top ${WIN_TRANS_SECS}`;
 		main.style.transition = `width ${WIN_TRANS_SECS},height ${WIN_TRANS_SECS}`;
+
 		if (this.is_fullscreen) {
 			win._bor= this.bor_hold;
 			delete this.bor_hold;
@@ -4441,6 +4470,8 @@ cwarn("No drop on main window");
 	};//»
 
 //Make app«
+
+
 	arg.topwin = this;
 	arg.FS_URL = fs_url;
 	if (arg.SAVER) {
@@ -4450,6 +4481,24 @@ cwarn("No drop on main window");
 	}
 	make_app(arg);
 	windows.push(this);
+
+	if (winargs.isMaxed){
+		max.innerText="\u{1f5d7}";
+		this.is_maxed = true;
+		let dims = winargs.holdDims;
+		this.maxholdx=dims.X;
+		this.maxholdy=dims.Y;
+		this.maxholdw=dims.W;
+		this.maxholdh=dims.H;
+	}
+	if (winargs.isFullscreen){
+		this.is_fullscreen = true;
+		let dims = winargs.holdDims;
+		this.fsholdx=dims.X;
+		this.fsholdy=dims.Y;
+		this.fsholdw=dims.W;
+		this.fsholdh=dims.H;
+	}
 //»
 
 }
@@ -5352,12 +5401,29 @@ const raise_app_if_open=(appname)=>{//«
 };//»
 
 const open_app = (appname, opts={}) => {//«
-	let {force, winCb=NOOP, winArgs, appArgs={}, icn} = opts;
+/*
+We only need fullpath in case of a "dev reloaded" window that has a path but is not associated with an icon.
+This happens when reloading a folder window.
+*/
+	let {force, winCb=NOOP, winArgs, appArgs={}, icn, fullpath} = opts;
+
+	let usename, usepath, useext;
+	if (fullpath){
+		let arr = capi.getNameExt(fullpath, false, true);
+		usepath = arr[0];
+		usename = arr[1];
+		useext = arr[2];
+	}
 	if (!force && raise_app_if_open(appname)) return winCb();
-	let win = new Window({CB:winCb, WINARGS:winArgs, name: appname.split(".").pop(), appName:appname, APPARGS:appArgs});
+	let win = new Window({FULLPATH: fullpath, CB:winCb, WINARGS:winArgs, name: usename || appname.split(".").pop(), appName:appname, APPARGS:appArgs});
 	if (icn) {
 		icn.win = win;
 		win.icon = icn;
+	}
+	if (fullpath) {
+		win.name = usename;
+		win.path = usepath;
+		win.ext = useext;
 	}
 };
 this.open_app = (appname, force_open, winargs, appargs) => {
@@ -5414,6 +5480,7 @@ const open_new_window = (icn, cb, opts={}) => {//«
 	win.ext = useext;
 	icn.win = win;
 	win.icon = icn;
+
 	return win;
 }//»
 
@@ -5524,9 +5591,12 @@ const open_file = (bytes, icn, useapp, cb) => {//«
 	}, {altApp: useapp});
 }//»
 const win_reload = () => { //«
+	if (!dev_mode_ok()) {
+		popup(`win_reload: "dev mode" is not enabled!`);
+		return;
+	}
 	let win = CWIN;
 	if (!win) return;
-//	let fsholdw, fsholdh, fsholdx, fsholdy, bor_hold; 
 	let {is_fullscreen, fsholdw, fsholdh, fsholdx, fsholdy, bor_hold} = win;
 	let {is_maxed, maxholdw, maxholdh, maxholdx, maxholdy} = win; 
 	let winCb=(win)=>{//«
@@ -5548,8 +5618,6 @@ const win_reload = () => { //«
 			win.set_fullscreen_dims();
 		}
 	};//»
-//	if (win.is_fullscreen) win.fullscreen(true);
-//	else if (win.is_maxed) win.maximize(true);
 	let winargs = {
 		WINTITLEIMG: win.img_div.childNodes[0],
 		ID: win.id,
@@ -5570,10 +5638,9 @@ const win_reload = () => { //«
 	appobj.reInit = win.app.reInit;
 	CWIN&&CWIN.off();
 	if(!icn) {
-		open_app((win._fs_url || win.appName), {winCb, force: true, winArgs: winargs, appArgs: appobj});
+		open_app((win._fs_url || win.appName), {winCb, force: true, winArgs: winargs, appArgs: appobj, fullpath: win.fullpath});
 		return 
 	}
-	icn.service_obj = win.service_obj;
 	icn.winargs = winargs;
 	open_icon(icn,{winCb});
 
@@ -8214,6 +8281,9 @@ capi.detectClick(document.body, 666, ()=>{//«
 //»
 //Util«
 
+const dev_mode_ok=()=>{
+	return (globals.is_local||qObj.expert||false);
+};
 const focus_editing=e=>{
 	if(e)nopropdef(e);
 	if(CEDICN){

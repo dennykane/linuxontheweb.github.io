@@ -233,7 +233,8 @@ const stat_num=()=>{//«
 const stat_mess=()=>{
 	let mess_str="";
 	if (dir.fullpath!="/") mess_str = "\xa0[<b>b</b>]ack ";
-	if (prev_paths) mess_str += "[<b>f</b>]orward";
+	if (prev_paths&&prev_paths[0]) mess_str += "[<b>f</b>]orward";
+	else prev_paths = undefined;
 	mess_div.innerHTML = mess_str;
 };
 
@@ -422,7 +423,8 @@ let arr = path.split("/");
 arr.pop();
 if (!prev_paths) prev_paths=[Win.fullpath];
 else prev_paths.unshift(Win.fullpath);
-let opts = {PREVPATHS: prev_paths, WINARGS: {X: topwin.winElem._x, Y:topwin.winElem._y, WID: Main._w, HGT: Main._h, BOTTOMPAD: topwin.bottompad}};
+let opts = {PREVPATHS: prev_paths, WINARGS: {}};
+topwin.setWinArgs(opts.WINARGS);
 if (topwin.saver) {
 	opts.SAVER = topwin.saver;
 }
@@ -432,16 +434,21 @@ Desk.open_file_by_path(arr.join("/"), null, opts);
 }
 else if (s=="f_"||s=="f_C"){
 if (!prev_paths) return;
+//log(JSON.stringify(prev_paths))
 let goto_path = prev_paths.shift();
+if (!goto_path){
+cwarn("Cannot go forward with goto_path ===", goto_path);
+return;
+}
 if (!prev_paths.length) prev_paths = undefined;
-let opts = {PREVPATHS: prev_paths, WINARGS: {X: topwin.winElem._x, Y:topwin.winElem._y, WID: Main._w, HGT: Main._h, BOTTOMPAD: topwin.bottompad}};
+let opts = {PREVPATHS: prev_paths, WINARGS: {}};
+topwin.setWinArgs(opts.WINARGS);
 if (topwin.saver) {
 	opts.SAVER = topwin.saver;
 }
 topwin.easyKill();
+//log(goto_path, opts);
 Desk.open_file_by_path(goto_path, null, opts);
-
-
 }
 else if (s=="s_"||s=="s_C"){
 
@@ -501,7 +508,10 @@ this.onresize = function() {//«
 //this.onblur=()=>{Main.blur();};
 this.onappinit=(arg, prevpaths)=>{
 prev_paths = prevpaths;
+//log(prev_paths);
+//log("PATH", arg);
 path = arg;
+if (!path) cerr("No path in onappinit!");
 init();
 };
 //this.onload=()=>{init();};
