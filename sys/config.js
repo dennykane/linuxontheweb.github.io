@@ -67,6 +67,17 @@ const DESK_PATH = `${HOME_PATH}/Desktop`;
 
 //Apps/Extensions«
 
+const APPLICATIONS_MENU=[
+	"Unicode\xa0Symbols", "util.Unicoder",
+	"Your\xa0app", "YourApp",
+	"Any", 0,
+	"Other", 0,
+	"Apps", 0,
+	"Can", 0,
+	"Go", 0,
+	"Here", 0
+];
+
 const ALL_EXTENSIONS=[];
 const TEXT_EXTENSIONS=[ "txt","js","json","app","html","htm","css"];
 const MEDIA_EXTENSIONS=["webm","mp4","m4a","ogg","mp3"];
@@ -144,6 +155,7 @@ const APPICONS={//«
 //»
 
 //System appearance«
+
 const BACKGROUND_IMAGE_URL = "/www/lotw256.png";
 //const DESK_GRADIENT="linear-gradient(135deg,#000 0%,#003 50%,#006 75%,#000077 87%, #777 94%, #ffc 100%)";
 const DESK_GRADIENT="linear-gradient(135deg,#000 0%,#003 50%,#006 75%,#000077 92%, #aa9 100%)";
@@ -166,6 +178,7 @@ const isMobile = (()=>{//«
 })();//»
 
 //Prevent default«
+
 /*«
 LEFT_A Navigate back
 RIGHT_A Navigate forward
@@ -205,6 +218,8 @@ export const globals = {//«
 	CURRENT_USER,
 	HOME_PATH,
 	DESK_PATH,
+
+	APPLICATIONS_MENU,
 
 	FOLDER_APP,
 	TEXT_APP,

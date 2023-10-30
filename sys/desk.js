@@ -129,7 +129,6 @@ const{
 const{KC,center,isnum,isobj,isarr,isint,isstr,mkdv,mksp,mkbut,make, log, cwarn, cerr}=util;
 const {dist,getNameExt,getKeys}=capi;
 const NUM=Number.isFinite;
-
 //»
 
 //Desk«
@@ -649,13 +648,6 @@ const DESK_CONTEXT_MENU=[
 		()=>{make_new_icon(desk, FOLDER_APP)},
 		"Text File",
 		()=>{make_new_icon(desk, "Text")}
-	],
-
-//1d6a8 is a fancy A 
-	'\u{2699}\xa0\xa0Applications',[
-		"Unicode\xa0Symbols",()=>{open_app("util.Unicoder");},
-		"Your\xa0app",()=>{open_app("YourApp");},
-		"Any",0, "Other",0, "Apps",0, "Can",0, "Go",0, "Here",0,
 	],
 	"\u{1f4c1}\xa0\xa0Explorer::Alt+e",open_home_folder,
 	"\u{1f5b3}\u{2009}\xa0Terminal::Alt+t", open_terminal,
@@ -8314,6 +8306,15 @@ const get_desk_context=()=>{//«
 	if (globals.read_only) {
 		menu.shift();
 		menu.shift();
+	}
+	let apps_arr = globals.APPLICATIONS_MENU;
+	let apps_menu = [];
+	menu.unshift('\u{2699}\xa0\xa0Applications', apps_menu);
+	for (let i=0; i < apps_arr.length; i+=2){
+		apps_menu.push(apps_arr[i]);
+		let app = apps_arr[i+1];
+		if (isstr(app)) apps_menu.push(()=>{open_app(app)});
+		else apps_menu.push(app);
 	}
 	return menu;
 };//»
