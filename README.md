@@ -15,8 +15,8 @@ programmatically accessible file system that exists within domain-specific
 <a href="https://linuxontheweb.github.io/docs/what-it-is.html">Go here</a> to read
 more.
 
-<a href="https://linuxontheweb.github.io/docs/help.html">Here</a> is the 
-official help page for using the system.
+<a href="https://linuxontheweb.github.io/docs/help.html">Here is the 
+official help page</a> for system users.
 
 
 Try out the current version at 
