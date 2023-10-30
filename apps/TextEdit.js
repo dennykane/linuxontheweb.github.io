@@ -2,6 +2,8 @@
 import { util, api as capi } from "/sys/util.js";
 import { globals } from "/sys/config.js";
 
+const{log,cwarn,cerr, make}=util;
+
 //export const app = function(arg) {
 export const app = function(Win, Desk) {
 
@@ -11,7 +13,6 @@ export const app = function(Win, Desk) {
 const{NS}=globals;
 const wdg = NS.api.widgets;
 const {poperr} = wdg;
-const{log,cwarn,cerr, make}=util;
 //log(wdg);
 //const{util}=globals;
 //const{make}=util;

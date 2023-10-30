@@ -3693,9 +3693,7 @@ layout.
 Object.defineProperty(this, "fullpath", {//«
 	get: ()=>{
 		if (!this.name) {
-cwarn("This window has no name!!!");
-//if (arg.FULLPATH) return arg.FULLPATH.regpath();
-//log(this);
+//cwarn("This window has no name!!!");
 			return null;
 		}
 		let path = (this.path ? this.path : "/") + "/" + this.name;
