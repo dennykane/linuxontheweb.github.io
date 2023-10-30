@@ -1330,8 +1330,7 @@ this.show=(if_temp)=>{//«
 	}
 };//»
 this.toggle_expert_mode = ()=>{//«
-//	if (!(globals.is_local||qObj.expert)) return;
-	if (!dev_mode_ok()) return;
+	if (!globals.dev_mode) return;
 	if (taskbar_expert_mode){
 		taskbar_expert_mode = false;
 		delete localStorage[lst_expert];
@@ -5359,9 +5358,10 @@ const make_app = arg => {//«
 			scr.type = "module";
 			script_path = `/apps/${winapp.replace(/\./g, "/")}.js`;
 		}
-		let v = (Math.random()+"").slice(5,9);
-//		script_path += `?v=${VERNUM++}`;
-		script_path += `?v=${v}`;
+		if (globals.dev_mode) {
+			let v = (Math.random()+"").slice(2,9);
+			script_path += `?v=${v}`;
+		}
 		scr.src = script_path;
 		scr.id = `script_${winapp}`;
 		document.head._add(scr);
@@ -5593,7 +5593,7 @@ const open_file = (bytes, icn, useapp, cb) => {//«
 	}, {altApp: useapp});
 }//»
 const win_reload = () => { //«
-	if (!dev_mode_ok()) {
+	if (!globals.dev_mode) {
 		popup(`win_reload: "dev mode" is not enabled!`);
 		return;
 	}
@@ -8282,9 +8282,6 @@ capi.detectClick(document.body, 666, ()=>{//«
 //»
 //Util«
 
-const dev_mode_ok=()=>{
-	return (globals.is_local||qObj.expert||false);
-};
 const focus_editing=e=>{
 	if(e)nopropdef(e);
 	if(CEDICN){
@@ -8448,6 +8445,7 @@ const no_select=(elm)=>{elm.style.userSelect="none"}
 	pathToNode = fsapi.pathToNode;
 	let winorig = window.location.origin;
 	if (winorig.match(/localhost/)||winorig.match(/127\.0\.0\.1/)||winorig.match(/192\.168\./)) globals.is_local = true;
+	globals.dev_mode = globals.is_local||qObj.expert||false;
 	if (!await fs.api.init()) return;
 	if (!await fs.mk_user_dirs()) return;
 	if ('BroadcastChannel' in window) {//«

@@ -275,9 +275,11 @@ const load_mod = async(modname, cb, opts = {})=>{//«
 
 	if (!force && NS.mods[modname]) return cb(true);
 	let path = modname.replace(/\./g, "/");
-	let v = (Math.random()+"").slice(2,9);
-	let modpath = `/mods/${path}.js?v=${v}`;
-
+	let modpath = `/mods/${path}.js`;
+	if (globals.dev_mode){
+		let v = (Math.random()+"").slice(2,9);
+		modpath+=`?v=${v}`;
+	}
 	let scr = document.createElement('script');
 	scr.type = "module";
 	scr.id=`script_mods.${modname}`;
