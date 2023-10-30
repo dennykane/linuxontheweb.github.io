@@ -6939,7 +6939,6 @@ const do_links = elm=>{//«
 	}
 };//»
 const mkpopup_tdiv = (str, opts={}) => {//«
-
 	let w = opts.WIN;
 	let text_fs = opts.FS;
 	let if_big_img = opts.BIGIMG;
@@ -7386,8 +7385,8 @@ cwarn("win.isScrollable test passed: WPMKIYTGH");
 		let tot_h = window.innerHeight;
 		let hi_h = def_h + hdiff + 20;
 		if (hi_h <= tot_h) {
-			div._h = def_h + hdiff;
-			tdiv._h = def_text_h + hdiff;
+			div._h = def_h + hdiff + 5;
+			tdiv._h = def_text_h + hdiff+5;
 			center(div);
 		} else {
 			div._h = tot_h - 20;
