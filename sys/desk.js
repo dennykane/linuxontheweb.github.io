@@ -174,6 +174,8 @@ let alt_is_up=false;
 
 //»
 //Timers/Counters/Numbers/Amounts«
+
+let last_win_cycle = 0;
 let switcher_off_timeout;
 
 let current_workspace_num = 0;
@@ -201,7 +203,6 @@ const RS_TIMEOUT = 300;
 let rs_timer = null;
 let taskbar_timer;
 let alt_tab_presses = 1;
-let tilde_press = 0;
 
 //»
 //DOM Elements/Objects/Arrays«
@@ -3592,7 +3593,6 @@ const Window = function(arg){//«
 cwarn("thiswin!==CWIN ????");
 				return;
 			}
-//			fullscreen_window(true);
 			this.fullscreen(true);
 		}
 		if (this.is_minimized||this.is_tiled) return;
@@ -4804,10 +4804,14 @@ const toggle_tiling_mode = () => {//«
 //},100);
 };//»
 
+
 const window_cycle = () => {//«
 
-	if (tilde_press) return;
-
+	if (window.performance.now() - last_win_cycle < 150) {
+//Throttle the speed of window cycling when the hotkey is held down
+		return;
+	}
+	last_win_cycle = window.performance.now();
 	let wins = windows;
 	let len = wins.length;
 	if (!len) return;
@@ -5723,7 +5727,7 @@ this.set = (which)=>{//«
 			curElem._y=CUR_FOLDER_YOFF;
 			setTimeout(()=>{
 				let got = this.geticon();
-				if (got) CWIN.app.stat(got.fullname);
+				if (got&&CWIN) CWIN.app.stat(got.fullname);
 			},50);
 		}
 	}
@@ -8154,7 +8158,6 @@ else if (code===18) keydiv.altOff();
 		have_window_cycle = false;
 		CWCW=null;
 	}
-	else if (code == KC['\x60']) tilde_press = 0;
 	if (!w) return;
 	if (w.is_minimized||w.popup) return;
 	if (w.app.onkeyup) w.app.onkeyup(e, capi.evt2Sym(e));
