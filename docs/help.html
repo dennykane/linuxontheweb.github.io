@@ -1,4 +1,4 @@
-<html><head><title>LOTW Help</title><meta name="viewport" content="width=device-width, initial-scale=1.0"><link rel="icon" href="/www/favicon.ico"><style>a:link{color: #99f;}a:visited{color: #99f;}</style></head><body style="background-color: #000; color: #bbb; font-size: 21px;"><div style="margin: auto;max-width: 85ch;"><br><p>This document contains helpful instructions for using the <a href="/">Linux on the Web system</a>.</p><br></div>
+<html><head><title>LOTW Help</title><meta name="viewport" content="width=device-width, initial-scale=1.0"><link rel="icon" href="/www/favicon.ico"><style>a:link{color: #99f;}a:visited{color: #99f;}</style></head><body style="background-color: #000; color: #bbb; font-size: 21px;"><div style="margin: auto;max-width: 85ch;"><br><p>This document contains helpful instructions for using the <a href="/">Linux on the Web system</a> (<a href="https://github.com/linuxontheweb/linuxontheweb.github.io">github repo</a>).</p><br></div>
 <div style="margin: auto;max-width: 85ch;">
 <hr><hr>
 <br>
@@ -156,12 +156,14 @@ attempted.
 
 <hr>
 <h3>Limited support for redirection</h3>
-<p>The 'cat' and 'echo' commands currently allow for a '>' redirect token.
+<p>The 'cat' and 'echo' commands currently allow for a '&gt;' redirect token.
 <hr>
 <h3>Awareness of shell tokens</h3>
 <p>While the LOTW shell is "aware" of the various kinds of tokens supported by
 modern shells, they are not generally allowed, and an error message will be displayed if
-they are used.
+they are used. This will allow for the possible white-listing of various shell features (such 
+as piping), in case there is enough demand to warrant the increase in the size and complexity
+of the codebase.
 <hr>
 
 <h3>Shell scripts</h3>
