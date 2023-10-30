@@ -8281,7 +8281,7 @@ capi.detectClick(document.body, 666, ()=>{//«
 
 const show_node_props=async(node)=>{//«
 	const pop=()=>{popup(s+"</div>",{title: "Node properties"});};
-	let s = '<div style="user-select: text;">'+node.name+"<br><br>";
+	let s = `<div style="user-select: text;">Name: ${node.name}<br><br>Path: ${node.path}<br><br>`;
 	let app = node.appName;
 	if (app == FOLDER_APP) {
 		s+=`Folder`;
@@ -8289,7 +8289,7 @@ const show_node_props=async(node)=>{//«
 	}
 	if (node.type!==FS_TYPE) {
 		if (app) s+=app+"<br><br>";
-		if (Number.isFinite(node.size)) s+=`${node.size} bytes`;
+		if (Number.isFinite(node.size)) s+=`Size: ${node.size} bytes`;
 		return pop();
 	}
 	let file = await node._file;
@@ -8300,7 +8300,7 @@ cerr("NO _file or appName property on the node", node);
 		}
 		return pop();
 	}
-	s+=`${file.size} bytes`;
+	s+=`Size: ${file.size} bytes`;
 	let a = (file.lastModifiedDate+"").split(" ");
 	s+=`<br><br>Last Modified:<br>${a[0]} ${a[1]} ${a[2]} ${a[3]} ${a[4]}<br>`;
 	let mod = file.lastModified;
