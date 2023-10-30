@@ -653,10 +653,9 @@ const DESK_CONTEXT_MENU=[
 
 //1d6a8 is a fancy A 
 	'\u{2699}\xa0\xa0Applications',[
-		"Unicode\xa0Symbols",
-		()=>{open_app("util.Unicoder");},
-		"Your\xa0app",
-		()=>{open_app("YourApp");},
+		"Unicode\xa0Symbols",()=>{open_app("util.Unicoder");},
+		"Your\xa0app",()=>{open_app("YourApp");},
+		"Any",0, "Other",0, "Apps",0, "Can",0, "Go",0, "Here",0,
 	],
 	"\u{1f4c1}\xa0\xa0Explorer::Alt+e",open_home_folder,
 	"\u{1f5b3}\u{2009}\xa0Terminal::Alt+t", open_terminal,
@@ -6587,6 +6586,7 @@ cerr("!!!! Could not find the previous item! !!!!");
 			div._tcol = ACTIVE_MENU_FG;
 			if (shortcut) shortcut._tcol = ACTIVE_MENU_FG;
 			curitem = div;
+			curitem.scrollIntoViewIfNeeded();
 			desk_menu = curitem.menu;
 			curitem.menu.curitem = curitem;
 		};//»
