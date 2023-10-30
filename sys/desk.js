@@ -8161,6 +8161,7 @@ keysym_funcs = {
 focus_desktop:()=>{let w=CWIN;if(w&&(w.is_fullscreen||w.is_maxed))return;CWIN&&CWIN.off();CUR.todesk();},
 test_function:async()=>{
 //let win = await api.openApp("dev.Launcher", {force: true});
+if (!globals.dev_mode) return popup("The test function requires expert mode!");
 toggle_tiling_mode();
 },
 make_folder: make_folder,
