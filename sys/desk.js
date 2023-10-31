@@ -1,9 +1,4 @@
 
-/*Bug!:
-
-With the just added file node properties popup, it doesn't work for newly created icons!
-
-*/
 /*«Late October 2023: Adding 9 workspaces
 
 Added makeScrollable method onto Window's This sets the tabIndex property of
@@ -1615,7 +1610,7 @@ setTimeout(()=>{
 //Icons«
 
 const Icon = function(node, elem, observer){//«
-
+//log(node);
 //DOM«
 let d;
 let icn = this;
@@ -1854,9 +1849,13 @@ this.rename = namearg => {//«
 	icn.clear(null,0);
 	let oldext = icn.ext||"";
 	let name;
-	let arr = getNameExt(namearg);
-	name = arr[0];
-	icn.ext = arr[1]||"";
+	if (app!==FOLDER_APP) {
+		let arr = getNameExt(namearg);
+		name = arr[0];
+		icn.ext = arr[1]||"";
+	}
+	else name = namearg;
+
 	d.dataset.name = namearg;
 	icn.name = name;
 	icn.label.innerText = name;
@@ -2919,10 +2918,18 @@ const save_icon_editing = async() => {//«
 
 	const doend = async newname => {//«
 		let oldpath = `${CEDICN.path}/${holdname}`;
-		let nameext = getNameExt(holdname);
-		let oldname = nameext[0];
-		let oldext = nameext[1];
+		let oldname;
+		let oldext;
 		let newnameext;
+		if (CEDICN.appName !== FOLDER_APP) {
+			let nameext = getNameExt(holdname);
+ 			oldname = nameext[0];
+			oldext = nameext[1];
+		}
+		else{
+			oldname = holdname;
+		}
+
 		if (newname){
 			newnameext = newname;
 			if (oldext) newnameext=`${newname}.${oldext}`;
@@ -2932,13 +2939,10 @@ const save_icon_editing = async() => {//«
 		}
 		else {
 			CEDICN.label.innerText = oldname;
-//			CEDICN.name = oldname;
-//			CEDICN.label.title = oldname;
 		}
+
 		CEDICN.dblclick = null;
-//		CEDICN.off();
 		if (CEDICN._savetext||CEDICN._savetext==="") {
-//			let rv = await fsapi.writeFile(CEDICN.fullpath(), CEDICN._savetext);
 			let rv = await fsapi.writeFile(CEDICN.fullpath, CEDICN._savetext, {noMakeIcon: true });
 			if (!rv) return abort("The file could not be created");
 			CEDICN._entry = rv.entry;
@@ -2949,7 +2953,6 @@ const save_icon_editing = async() => {//«
 			CEDICN._editcb(CEDICN);
 			CEDICN._editcb = null;
 		}
-//		CEDICN.save();
 		if (CEDICN.parentNode===desk && !windows_showing) toggle_show_windows();
 		CEDICN = null;
 		CG.off();

@@ -389,14 +389,21 @@ String.prototype.regpath = function(if_full) {//«
 
 //Node«
 const Node = function(arg){
+const {isDir} = arg;
 	const okget=()=>{//«
 		if (this.type=="loc") return true;
 		let bid = this.blobId;
 		if (!bid || bid < FIRST_BLOB_ID) return;
 		return true;
 	};//»
+//log(arg);
 	const setname=val=>{//«
+
 		this._name = val;
+		if (isDir){
+			this.baseName = val;
+			return;
+		}
 		let arr = getNameExt(val);
 		if (arr[1]) {
 			this.ext = arr[1];
@@ -1824,7 +1831,6 @@ const mk_dir_kid = (par, name, opts={}) => {//«
 
 	let is_dir = opts.isDir;
 	let is_link = opts.isLink;
-//	let sz = opts.size;
 	let mod_time = opts.modTime;
 	let path = opts.path;
 	let fullpath = `${path}/${name}`;
@@ -1838,6 +1844,7 @@ const mk_dir_kid = (par, name, opts={}) => {//«
 			name: name,
 			par: par,
 			root: par.root,
+			isDir: is_dir
 //			path: path
 		});
 	}
@@ -1900,6 +1907,7 @@ const mount_tree=(name, type, pararg)=>{//«
 		_type: type,
 		kids: {},
 		appName: FOLDER_APP,
+		isDir: true,
 		sys: true,
 //		fullpath: `/${name}`,
 		par: pararg||root
@@ -1917,6 +1925,7 @@ return new Promise(async(Y,N)=>{
 	const new_root_tree = (name, type) => {//«
 		return new Node({
 			appName: FOLDER_APP,
+			isDir: true,
 			name: name,
 			kids: {},
 			_type: FS_TYPE,
