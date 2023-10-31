@@ -664,6 +664,42 @@ const DESK_CONTEXT_MENU=[
 
 //Desktop«
 
+const switch_to_workspace = (num, if_force) => {//«
+
+if (!if_force && num == current_workspace_num){
+	cwarn("ALREADY ON IT");
+	return;
+}
+
+for (let w of windows){
+	if (!w.is_minimized) w.winElem._dis="none";//was block
+	else {
+		w.taskbar_button._dis="none";//was flex
+	}
+}
+if (windows.tiling_mode) tiling_underlay.off();
+if (CWIN) CWIN.off();
+if (ICONS.length && ICONS[0].parWin !==desk){
+	icon_array_off();
+}
+current_workspace_num = num;
+windows = workspaces[current_workspace_num];
+if (windows.tiling_mode) tiling_underlay.on();
+for (let w of windows){
+	if (!w.is_minimized) w.winElem._dis="block";
+	else w.taskbar_button._dis="flex";
+}
+show_overlay(`Current workspace: ${current_workspace_num+1}`);
+set_workspace_num(current_workspace_num);
+taskbar.renderSwitcher();
+top_win_on();
+
+};//»
+const set_workspace_num = which => {//«
+	workspace_num_div.innerHTML=`${which+1}`;
+//	workspace_num_div.title = `Current workspace: ${which+1}\nTo switch, click here\nor use shortcut:\nCtrl+Alt+Shift+[1-${num_workspaces}]`;
+	workspace_num_div.title = `Current workspace: ${which+1}\nCtrl+Alt+Shift+[1-${num_workspaces}]\nto switch workspaces`;
+};//»
 const fit_desktop = ()=>{//«
 	let _h = winh(true)+1;
 	let _w = winw()+1;
@@ -1181,44 +1217,6 @@ const make_desktop = () => {//«
 
 //»
 //Taskbar«
-
-
-const switch_to_workspace = (num, if_force) => {//«
-
-if (!if_force && num == current_workspace_num){
-	cwarn("ALREADY ON IT");
-	return;
-}
-
-
-for (let w of windows){
-	if (!w.is_minimized) w.winElem._dis="none";//was block
-	else {
-		w.taskbar_button._dis="none";//was flex
-	}
-}
-if (windows.tiling_mode) tiling_underlay.off();
-//if (windows)
-if (CWIN) CWIN.off();
-icon_array_off();
-current_workspace_num = num;
-windows = workspaces[current_workspace_num];
-if (windows.tiling_mode) tiling_underlay.on();
-for (let w of windows){
-	if (!w.is_minimized) w.winElem._dis="block";
-	else w.taskbar_button._dis="flex";
-}
-show_overlay(`Current workspace: ${current_workspace_num+1}`);
-set_workspace_num(current_workspace_num);
-taskbar.renderSwitcher();
-top_win_on();
-
-};//»
-const set_workspace_num = which => {//«
-	workspace_num_div.innerHTML=`${which+1}`;
-//	workspace_num_div.title = `Current workspace: ${which+1}\nTo switch, click here\nor use shortcut:\nCtrl+Alt+Shift+[1-${num_workspaces}]`;
-	workspace_num_div.title = `Current workspace: ${which+1}\nCtrl+Alt+Shift+[1-${num_workspaces}]\nto switch workspaces`;
-};//»
 
 const Taskbar = function(){
 
@@ -2638,6 +2636,7 @@ const move_to_win_or_desk=()=>{//«
 		move_icons(DESK_PATH, {e:{clientX:x,clientY:y}});
 		return;
 	}
+	if (par===desk && !cur_is_on) return;
 	for (let icn of ICONS) vacate_icon_slot(icn, true);
 	if (toOrigin){
 		x=0;
