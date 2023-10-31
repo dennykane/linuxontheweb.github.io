@@ -13,7 +13,7 @@ main.style.userSelect="text";
 main._fs=18;
 
 const init=async()=>{//«
-	let rv = await fetch('/docs/help.html');
+	let rv = await fetch('/www/docs/help.html');
 	if (!rv.ok){
 cerr("Could not fetch the html!!!");
 		return;

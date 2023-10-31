@@ -12,7 +12,7 @@ export const app = function(Win, Desk) {
 const{fs}=globals;
 const{log,cwarn,cerr, make,mkdv,mk,mksp}=util;
 const Main = Win.main;
-
+Win.makeScrollable();
 //const Win = Main.top;
 
 //»
@@ -26,7 +26,7 @@ const BADTAGS = ["SCRIPT","IFRAME"];
 //DOM«
 
 Main._over="auto";
-Main._bgcol="#fff";
+//Main._bgcol="#fff";
 Main.style.userSelect="text";
 
 //»
@@ -53,7 +53,6 @@ this.onloadfile=bytes=>{//«
 		while (arr.length) {
 			tot++;
 			let node = arr.shift();
-//log(node);
 			node.parentNode.removeChild(node);
 		}
 	}
