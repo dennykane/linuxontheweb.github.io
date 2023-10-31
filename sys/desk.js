@@ -3758,6 +3758,7 @@ this.setWinArgs=args=>{//«
 	}
 };//»
 	this.makeScrollable=()=>{//«
+		main._overy="auto";
 		main.tabIndex="-1";
 		this.isScrollable = true;
 	};//»
