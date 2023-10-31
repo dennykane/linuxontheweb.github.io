@@ -39,15 +39,16 @@ The site should then be live at http://localhost:12345.
 
 ## Viewing and editing source files
 
-vim is the recommended text editor, mainly because of the ability to 
-enable row folding via the manual insertion of markers. The instructions below 
-are specific to vim's runtime configuration file, .vimrc.
+vim is the recommended text editor, mainly because of the ability to enable row
+folding via the manual insertion of markers.  Since the files in this
+repository can be quite large, row folding is an essential feature of the
+development side of LOTW. The instructions below are specific to vim's runtime
+configuration file, .vimrc.
 
 ### Enabling row folding
 
-Since the files in this repository can be quite large, row folding is an
-essential feature of the development side of LOTW. So, to browse the source code
-as intended, the following lines must be included in your .vimrc:
+To browse the source code as intended, the following lines must be included in
+your .vimrc:
 
 	set foldmethod=marker
 	set foldmarker=«,»
@@ -56,7 +57,6 @@ as intended, the following lines must be included in your .vimrc:
 To quickly toggle between opened and closed row folds with the Enter key, add this line:
 
 	nmap <enter> za
-
 
 ### Inserting fold markers
 
