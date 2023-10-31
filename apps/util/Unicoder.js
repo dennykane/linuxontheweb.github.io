@@ -1,5 +1,5 @@
-import { util, api as capi } from "/sys/util.js";
-import { globals } from "/sys/config.js";
+import { util, api as capi } from "util";
+import { globals } from "config";
 const{mkdv, mksp,mk,strnum, isarr, isstr, isnum, isobj, make, KC, kc, log, jlog, cwarn, cerr}=util;
 
 export const app = function(Win, Desk) {//«
