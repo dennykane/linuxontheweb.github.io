@@ -68,6 +68,7 @@ const DESK_PATH = `${HOME_PATH}/Desktop`;
 //Apps/Extensions«
 
 const APPLICATIONS_MENU=[
+	"Text\xa0Editor","TextEdit",
 	"Unicode\xa0Symbols", "util.Unicoder",
 	"Your\xa0app", "YourApp",
 	"Any", 0,

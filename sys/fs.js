@@ -1,4 +1,5 @@
-/*Early OCTOBER 2023:
+
+/*Early OCTOBER 2023:«
 Just switched this to the Origin Private File System format (instead of the old webkitRequestFileSystem way),
 which uses navigator.storage.getDirectory(). 
 Still need to implement command line append ">>", which would force us to do a writer.seek 
@@ -16,7 +17,7 @@ FileSystemFileHandle.remove's NOT SUPPORTED in Firefox (or Safari):
 FileSystemDirectoryHandle.remove's NOT SUPPORTED work in Firefox (or Safari):
 @SLKIUNL
 
-*/
+»*/
 /*_TODO_: Tilde expansion, allowing for arbitrary relative paths in Link«
 targets.
 »*/
@@ -245,9 +246,7 @@ if (type===DIRECTORY_FS_TYPE||type===NULL_BLOB_FS_TYPE||type==LINK_FS_TYPE) {
 	let path = `${parId}/${name}`;
 	let node = {parId, path, type: type};
 	if (value) node.value = value;
-//log(node);
 	let rv = await add_node(node);
-//log("RV",rv);
 	if (!rv){
 	}
 	else{
@@ -298,7 +297,7 @@ if (!await del_by_id(id)) return;
 return true;
 
 };//»
-this.dropDatabase = () => {
+this.dropDatabase = () => {//«
 	return new Promise((Y,N)=>{
 		db.close();
 		const req = window.indexedDB.deleteDatabase(DBNAME);
@@ -314,7 +313,7 @@ cwarn("BLOCKED");
 			Y(true);
 		};
 	});
-};
+};//»
 
 }//»
 
@@ -1214,15 +1213,20 @@ return new Promise(async(Y,N)=>{
 	}
 	else {
 		let bid = node.blobId;
-		if (!bid) {
+if (!bid){
+cerr("No node.blobId!?!?!?", bid);
+}
+		if (!bid||(bid===NULL_BLOB_FS_TYPE && !opts.getFileOnly)) {
 			if (!istext) return Y(new Uint8Array());
 			return Y("");
+		}
+		if (bid===NULL_BLOB_FS_TYPE) {
+			return Y("NULL");
 		}
 		let ent = await get_blob_entry(`${bid}`);
 		if (!ent) return Y();
 		file = await ent.getFile();
 		if (opts.getFileOnly) return Y(file);
-//		file = await get_fs_file_from_entry(ent);
 	}
 	if (!file) return Y();
 	let fmt;
@@ -1461,11 +1465,11 @@ const writeFile = (path, val, opts = {}) => {//«
 		if (!rootdir) return invalid();
 		let exists = await pathToNode(path);
 		if (root_dirs.includes(rootdir)){
-			let rv = await saveFsByPath(path, val, opts);
+			let node = await saveFsByPath(path, val, opts);
 			if (!(exists || opts.noMakeIcon)) {
-				move_icon_by_path(null, path);
+				move_icon_by_path(null, path, node.appName, {node});
 			}
-			Y(rv);
+			Y(node);
 		}
 		else if (rootdir === "dev"){
 			let name = arr.shift();
@@ -1494,8 +1498,13 @@ if (!node) {
 	let parobj = await pathToNode(parpath);
 	if (!parobj) return Y([null, `${parpath}: Bad parent path`]);
 	node = await touchFile(parobj, fname);
+	let ext = capi.getNameExt(fname)[1];
+	node.ext = ext;
+	node.appName = capi.extToApp(ext);
+//	add_lock_funcs(kid);
+
 }
-//log("SAVE", path, node);
+
 let nid = node.id;
 let bid = node.blobId;
 if (bid===NULL_BLOB_FS_TYPE){
@@ -1507,8 +1516,6 @@ if (bid===NULL_BLOB_FS_TYPE){
 	bid = gotid;
 	node.blobId = bid;
 }
-
-
 
 let fent = await get_blob_entry(`${bid}`);
 node.entry = fent;
@@ -1564,8 +1571,12 @@ cwarn("GOTERMPT");
 	db.init();
 	let id = await db.createNode(name, NULL_BLOB_FS_TYPE, parid);
 	if (!id) return bad("ADBNYURL");
-//	let kid = mk_dir_kid(parobj, name, {path: parobj.fullpath});
-	let kid = mk_dir_kid(parobj, name, {});
+
+	let kid = mk_dir_kid(parobj, name);
+//	kid.path = parobj.fullpath;
+//	kid.appName = capi.extToApp(name);
+//	kid.size = 0;
+
 	kid.blobId = NULL_BLOB_FS_TYPE;
 	kid.id = id;
 	kids[name] = kid;
@@ -1809,7 +1820,7 @@ console.error(e);
 }           
 //»
 
-const mk_dir_kid = (par, name, opts) => {//«
+const mk_dir_kid = (par, name, opts={}) => {//«
 
 	let is_dir = opts.isDir;
 	let is_link = opts.isLink;
@@ -1858,8 +1869,6 @@ const mk_dir_kid = (par, name, opts) => {//«
 		kid.SZ = sz;
 	}
 */
-//	kid.path = path;
-//	kid.fullpath = fullpath;
 	kid.file = file;
 	kid.entry = ent;
 	return kid;
@@ -2795,9 +2804,6 @@ NS.api.fs=this.api;
 //»
 
 //»
-
-
-
 
 
 

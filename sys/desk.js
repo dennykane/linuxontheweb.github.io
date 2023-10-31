@@ -1,10 +1,14 @@
-/*Very late October 2023: 
+
+/*Bug!:
+
+With the just added file node properties popup, it doesn't work for newly created icons!
+
+*/
+/*«Late October 2023: Adding 9 workspaces
 
 Added makeScrollable method onto Window's This sets the tabIndex property of
 the main div to "-1", and adds the isScrollable property to the Window. 
 
-*/
-/*«Late October 2023: Adding 9 workspaces
 Toggle between workspaces with Ctrl+Alt+Shift+[1-9]
 If an icon is being opened (double-clicked) that already has an associated window in another
 workspace, then we will either need to:
@@ -272,7 +276,7 @@ let std_keysym_map={
 	"l_CA":{"n":"toggle_layout_mode"},
 	"w_CA":{"n":"toggle_win_chrome"},
 	"n_A":{"n":"minimize_window"},
-//	"f_CAS":{"n":"toggle_fullscreen"},
+	"f_CAS":{"n":"toggle_fullscreen"},
 	"b_A":{"n":"toggle_taskbar"},
 	t_A:{n:"open_terminal"},
 	e_A:{n:"open_explorer"},
@@ -331,6 +335,8 @@ let TASKBAR_OP=1;
 //In Folder.js, Main._pad= 5. We need this value here so the icon selection cursor will line up right.
 let CUR_FOLDER_XOFF = 5;
 let CUR_FOLDER_YOFF = 5;
+globals.CUR_FOLDER_XOFF=CUR_FOLDER_XOFF;
+globals.CUR_FOLDER_YOFF=CUR_FOLDER_YOFF;
 
 let DEF_BG_IMG_OP = 0.3;
 let DESK_ICON_BOR = "2px dotted rgba(255,255,64,0.66)";
@@ -3240,6 +3246,7 @@ log(where);
 	}
 
 	if (!node) {
+cwarn("No node given!");
 		node={name:fullname, baseName: name, ext: ext};
 		node.kids = (oldicon && oldicon.appName === FOLDER_APP);
 	}
@@ -3704,6 +3711,8 @@ Object.defineProperty(this, "title", {//«
 });//»
 
 	this.Desk = Desk;
+	this.Main = main;
+	this.main = main;
 	this.workspace_num = current_workspace_num;
 	this.bottom_div = bottom_div;
 	this.status_bar = statdiv;
@@ -3713,7 +3722,6 @@ Object.defineProperty(this, "title", {//«
 	this.close_button = close;
 	this.max_button = max;
 	this.minimize_button = min;
-	this.main = main;
 	this.titlebar = titlebar;
 	this.title_div = title;
 	this.title = wintitle;
@@ -5643,7 +5651,8 @@ const win_reload = () => { //«
 //»
 //Cursor«
 
-const Cursor = function(){//«
+const Cursor = function(){
+
 let curElem = make('div');
 this.curElem = curElem;
 curElem.id="icon_cursor";
@@ -5655,35 +5664,25 @@ curElem._h=IGSY;
 curElem._dis="none";
 curElem._op=1;
 curElem._mart=-1.5;
-this.on=(is_tog)=>{
+this.ison=()=>{return (curElem._op==1);};
+this.isdesk=()=>{return (curElem.parentNode===desk);};
+this.xoff=()=>{return (curElem.parentNode===desk)?desk_grid_start_x:folder_grid_start_x;};
+this.yoff=()=>{return (curElem.parentNode===desk)?desk_grid_start_y:folder_grid_start_y;};
+this.getpos=()=>{return {X:(curElem._x-CUR.xoff())/IGSX, Y:(curElem._y-CUR.yoff())/IGSY};};
+this.on=(is_tog)=>{//«
 	if (is_tog) cur_showing = true;
 	else if (!cur_showing) return;
 	curElem._op=1;
 	curElem._dis="";
 	curElem.scrollIntoViewIfNeeded();
 	this.set(4);
-};
-this.off=(is_tog)=>{
+};//»
+this.off=(is_tog)=>{//«
 	if (is_tog) cur_showing = false;
 	else if (cur_showing) return;
 	curElem._op=0;
 	curElem._dis="none";
-};
-this.ison=()=>{
-	return (curElem._op==1);
-};
-this.isdesk=()=>{
-	return (curElem.parentNode===desk);
-};
-this.xoff=()=>{
-	return (curElem.parentNode===desk)?desk_grid_start_x:folder_grid_start_x;
-};
-this.yoff=()=>{
-	return (curElem.parentNode===desk)?desk_grid_start_y:folder_grid_start_y;
-};
-this.getpos=()=>{
-	return {X:(curElem._x-CUR.xoff())/IGSX, Y:(curElem._y-CUR.yoff())/IGSY};
-};
+};//»
 this.setpos=(x,y,icn)=>{//«
 	if (this.isdesk()) {
 		curElem._x= this.xoff()+IGSX*x;
@@ -5705,7 +5704,7 @@ this.set = (which)=>{//«
 	else{
 		let got = this.main.lasticon;
 		if (got && got.parWin == this.main.top) {
-			curElem._loc(got.iconElem.offsetLeft+2,got.iconElem.offsetTop+2);
+			curElem._loc(got.iconElem.offsetLeft+CUR_FOLDER_XOFF,got.iconElem.offsetTop+CUR_FOLDER_YOFF);
 			CWIN.app.stat(got.fullname);
 		}
 		else {
@@ -5744,16 +5743,13 @@ this.right=(if_ctrl)=>{//«
 	let {X:_x,Y:_y}=this.getpos();
 	if (if_ctrl) this.select(true);
 	if (this.isdesk()){
-//		if (_x+1 < DESK_GRID_W) _x++;
 		if (desk_grid_start_x+(IGSX*(_x+2)) < winw()) _x++;
 		else {
 			if (this.yoff()+(IGSY*(_y+2)) < winh()) {
-//				_y++;
 				_x=0;
 			}
 			else {
 				_x=0;
-//				_y=0;
 			}
 		}
 		this.setpos(_x,_y);
@@ -5952,7 +5948,7 @@ this.select=(if_toggle,if_open,if_force_new_win)=>{//«
 	else open_icon(icn, {force: if_force_new_win});
 };//»
 
-};//»
+};
 
 const CUR = new Cursor();
 
@@ -7549,13 +7545,14 @@ cerr(mess);
 //»
 
 //Opens a folder in "Save As..." mode
-api.saveAs=(win)=>{//«
+api.saveAs=(win, ext)=>{//«
 //api.saveAs=(win, val, ext)=>{
 return new Promise(async(Y,N)=>{
 open_file_by_path(globals.home_path, null, {
 //DWEUNFKL
 	WINARGS: {BOTTOMPAD: SAVEAS_BOTTOM_HGT},
 	SAVER:{
+		ext, 
 		folderCb: fwin=>{
 			win.cur_save_folder = fwin;
 		},
@@ -7567,33 +7564,6 @@ open_file_by_path(globals.home_path, null, {
 			}
 			Y({path: fwin.fullpath, name: savename});
 			fwin.forceKill();
-/*«
-			let icn = await make_new_text_file(fwin, val, ext);
-			if (!icn) {
-				win.cur_save_folder.easyKill();
-				win.cur_save_folder = null;
-				Y();
-				return;
-			}
-			if (win.icon){
-				win.icon.win=undefined;
-				delete win.icon.win;
-			}
-			icn.parWin.easyKill();
-			win.name = icn.name;
-			win.path = icn.path;
-			win.ext = icn.ext;
-			win.title = icn.name;
-			win.icon=undefined;
-			delete win.icon;
-			win.cur_save_folder = null;
-			let obj = await pathToNode(win.fullpath);
-			win.status_bar.innerText = `${obj.size} bytes written`;
-			obj.lockFile();
-			win.node = obj;
-			Y(obj);
-			make_icon_if_new(obj);
-»*/
 		}//»
 	}
 
@@ -7985,13 +7955,14 @@ cwarn("There was an unattached icon in ICONS!");
 		else if (kstr=="a_C") return select_all_icons();
 		else if (kstr=="s_" && !cwin) return switch_icons();
 		else if (kstr=="p_"&&CUR.ison()) {
+			if (cwin&&!text_inactive) return;
 			let icn = CUR.geticon();
 			if (icn) return show_node_props(icn.node);
 		}
 		else if (kstr.match(/_$/)){
 			if (check_input()) return;
 			if (kstr=="m_") return move_icon_array();
-			else if (kstr=="0_") return move_icon_array({toOrigin: true});
+			else if (kstr=="0_"&&CUR.isdesk()) return move_icon_array({toOrigin: true});
 		}
 	}//»
 
@@ -8276,6 +8247,7 @@ capi.detectClick(document.body, 666, ()=>{//«
 //Util«
 
 const show_node_props=async(node)=>{//«
+
 	const pop=()=>{popup(s+"</div>",{title: "File node properties", wide: true});};
 	let s = `<div style="user-select: text;">Name: ${node.name}<br><br>Path: ${node.path}<br><br>`;
 	let app = node.appName;
@@ -8283,7 +8255,7 @@ const show_node_props=async(node)=>{//«
 		s+=`App: Folder`;
 		return pop();
 	}
-	if (!app) app="[None]";
+	if (!app) app="<i>None</i>";
 	s+=`App: ${app}<br><br>`;
 	if (node.type!==FS_TYPE) {
 		if (Number.isFinite(node.size)) s+=`Size: ${node.size} bytes`;
@@ -8291,10 +8263,10 @@ const show_node_props=async(node)=>{//«
 	}
 	let file = await node._file;
 	if (!file) {
-		if (!app) {
-cerr("NO _file or appName property on the node", node);
-			s+="???";
-		}
+		return pop();
+	}
+	if (file==="NULL"){
+		s+=`Size: 0 bytes`;
 		return pop();
 	}
 	s+=`Size: ${file.size} bytes`;

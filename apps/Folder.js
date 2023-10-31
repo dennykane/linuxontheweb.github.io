@@ -1,83 +1,50 @@
+/*Issues«
 
-//«
-/*
-If we are in the process of saving a file via the Filesaver mechanism...
-*/
-/* !!! LOGIC BUG @EJMNCYLKIFB !!!
+Halloween 2023: Don't know if these have been resolved because I don't really understand
+these issues
 
+!!! LOGIC BUG @EJMNCYLKIFB !!!
 If we cancel the saving operation during the period between the icon being created as New_File_1 (or whatever)
 and the "real name" we want for it
-
-
-*/
-/*
 
 If you close this window when it is in the "Save As" mode (for e.g. TextEdit), it is still treated as
 the child_window...
 
-*/
-//»
+»*/
 
 //Imports«
+
 import { util, api as capi } from "/sys/util.js";
 import { globals } from "/sys/config.js";
-//»
 
-
-export const app = function(Win, Desk) {
-
-//Imports«
-
-//const {Core, Main, NS}=arg;
-//const{log,cwarn,cerr, globals, Desk}=Core;
-const {Icon} = Desk.api;
 const {getAppIcon}= capi;
 const{NS, FS_TYPE, FOLDER_APP}=globals;
-//const{FOLDER_APP}=globals;
+const{poperr} = globals.widgets;
 const{make,mkdv,mk,mksp,log,cwarn,cerr}=util;
 const {fs}=NS.api;
-let CUR_FOLDER_XOFF = 5;
-const topwin=Win;
-const Main = topwin.main;
-//let topwin = Main.top;
-//log(topwin);
-let winid = topwin.id;
-//log("TOPWIN",topwin);
-//let path = topwin._fullpath;
+
+//»
+
+export const app = function(Win) {
+
+//Var«
+
+const {Main, Desk, status_bar} = Win;
+
+const statbar = status_bar;
+
+const {Icon} = Desk.api;
+
 let path;
-let statbar = topwin.status_bar;
 let num_entries = 0;
-
-const{poperr} = globals.widgets;
-
 let picker_mode;
-
-// = false;
-
 
 //»
 
 //DOM«
 
-///*
-const FOOTER_HGT = 0;
-//const FOOTER_HGT = 38;
-//let Main = _Main;
+
 let savebut, canbut;
-//*/
-/*
-const FOOTER_HGT = 38;
-let Main = mkdv();
-Main._pos="absolute";
-Main._loc(0,0);
-Main._w="100%";
-Main._overy="hidden";
-Main._h=_Main._h-FOOTER_HGT;
-_Main._add(Main);
-topwin.main = Main;
-*/
-//log(_Main);
-let WDIE;
 let dd = mkdv();
 dd._pos = 'absolute';
 dd._bor = '1px solid white';
@@ -88,15 +55,11 @@ dd._w = 0;
 dd._h = 0;
 Main._add(dd);
 
-//Main._bgcol="#332323";
-//Main._bgcol="#544";
 Main._overy="auto";
 Main._overx="hidden";
-Win.makeScrollable();
-//Main.tabIndex="-1";
-//Main._pad=5;
+
 const icondv = mkdv();
-icondv.id=`icondiv_${winid}`;
+icondv.id=`icondiv_${Win.id}`;
 icondv._mar=5;
 icondv.main = Main;
 icondv.win = Main.top;
@@ -107,28 +70,9 @@ icondv.style.flexShrink=0;
 icondv.style.flexGrow=0;
 icondv.style.flexWrap="wrap";
 Main._add(icondv);
-topwin.drag_div = dd;
-topwin.icon_div = icondv;
+Win.drag_div = dd;
+Win.icon_div = icondv;
 Main.icon_div = icondv;
-//log(topwin);
-
-//»
-//Var«
-let save_input;
-let tab_order;
-let prev_paths;
-
-this.show_hidden = false;
-//let ICONS=[];
-let is_loading = false;
-let drag_timeout;
-let dir;
-let kids;
-let curnum;
-let observer;
-//»
-
-//Funcs«
 
 let num_div = mkdv();
 let cur_div = mkdv();
@@ -144,15 +88,100 @@ statbar.style.justifyContent="space-between";
 statbar._add(mess_div);
 statbar._add(cur_div);
 statbar._add(num_div);
-//log(statbar);
-const statnum=(s)=>{
-	num_div.innerHTML = `${s}\xa0`;
+
+//»
+
+//Var«
+
+let save_input;
+let tab_order;
+let prev_paths;
+
+let is_loading = false;
+let drag_timeout;
+let dir;
+let kids;
+let curnum;
+let observer;
+
+this.show_hidden = false;
+
+//»
+
+//Funcs«
+
+//Util«
+
+const stat_num=()=>{//«
+	if (!num_entries) _stat_num("Empty");
+	else if (num_entries==1) _stat_num("1 entry");
+	else _stat_num(`${num_entries} entries`);
 };
-const statcur=(s)=>{
-	cur_sp.innerHTML = s;
-//log(cur_sp.getBoundingClientRect().width);
-};
-const NOOP=()=>{};
+const _stat_num=(s)=>{num_div.innerHTML = `${s}\xa0`;};
+//»
+const stat_mess=()=>{//«
+	let mess_str="";
+	if (dir.fullpath!="/") mess_str = "\xa0[<b>b</b>]ack ";
+	if (prev_paths&&prev_paths[0]) mess_str += "[<b>f</b>]orward";
+	else prev_paths = undefined;
+	mess_div.innerHTML = mess_str;
+};//»
+const stat_cur=(s)=>{cur_sp.innerHTML = s;};
+const zero_cursor=()=>{//«
+	if (!(Win.cursor&&Win.cursor.ison())) return;
+	Win.cursor.zero();
+}//»
+const handle_save_tab=s=>{//«
+	let act = document.activeElement;
+	let ind = tab_order.indexOf(act);
+	if (s.match(/_S$/)) ind--;
+	else ind++;
+	if (ind < 0) ind = tab_order.length-1;
+	else if (ind == tab_order.length) ind = 0;
+	tab_order[ind].focus();
+};//»
+const do_save = ()=>{//«
+
+//EJMNCYLKIFB
+	if (!Win.saver) return;
+	Win.saver.cb(Win);
+	Win.saver=null;
+
+};//»
+
+//»
+
+const go_back = ()=>{//«
+	if (path.match(/^\x2f+$/)) return;
+
+	let arr = path.split("/");
+	arr.pop();
+	if (!prev_paths) prev_paths=[Win.fullpath];
+	else prev_paths.unshift(Win.fullpath);
+	let opts = {PREVPATHS: prev_paths, WINARGS: {}};
+	Win.setWinArgs(opts.WINARGS);
+	if (Win.saver) {
+		opts.SAVER = Win.saver;
+	}
+	Win.easyKill();
+	Desk.open_file_by_path(arr.join("/"), null, opts);
+};//»
+const go_forth=()=>{//«
+	if (!prev_paths) return;
+	let goto_path = prev_paths.shift();
+	if (!goto_path){
+cwarn("Cannot go forward with goto_path ===", goto_path);
+		return;
+	}
+	if (!prev_paths.length) prev_paths = undefined;
+	let opts = {PREVPATHS: prev_paths, WINARGS: {}};
+	Win.setWinArgs(opts.WINARGS);
+	if (Win.saver) {
+		opts.SAVER = Win.saver;
+	}
+	Win.easyKill();
+	Desk.open_file_by_path(goto_path, null, opts);
+};//»
 
 const load_dir=()=>{//«
 
@@ -218,7 +247,7 @@ cwarn("Not found in kids: "+ kid.dataset.name);
 		let icn = new Icon(got, kid, observer);
 		if (got.filesaver_cb) got.filesaver_cb(icn);
 //		icn._pos="relative";
-		icn.parWin = topwin;
+		icn.parWin = Win;
 		kid.showing = true;
 //		kid.icon = icn;
 	};//»
@@ -231,35 +260,27 @@ cwarn("Not found in kids: "+ kid.dataset.name);
 	is_loading = false;
 
 }//»
-const stat_num=()=>{//«
-	if (!num_entries) statnum("Empty");
-	else if (num_entries==1) statnum("1 entry");
-	else statnum(`${num_entries} entries`);
-};//»
-const stat_mess=()=>{
-	let mess_str="";
-	if (dir.fullpath!="/") mess_str = "\xa0[<b>b</b>]ack ";
-	if (prev_paths&&prev_paths[0]) mess_str += "[<b>f</b>]orward";
-	else prev_paths = undefined;
-	mess_div.innerHTML = mess_str;
-};
-
-//»
 
 const make_save_dom = ()=>{//«
 
 picker_mode = true;
-topwin.title = `Save\xa0Location\xa0:\xa0'${topwin.title}'`;
-let botdiv = topwin.bottom_div;
+Win.title = `Save\xa0Location\xa0:\xa0'${Win.title}'`;
+let botdiv = Win.bottom_div;
 let both = botdiv.getBoundingClientRect().height-4;
 
 let sp = mk('span');
 sp._marl=5;
 sp._fs=18;
-//sp._tcol="#fff";
 sp.innerHTML="Save As:\xa0";
 let inp = mk('input');
+let ext;
+if (Win.saver.ext) {
+	ext = mk('span');
+	ext._marl = 2;
+	ext.innerHTML = `.<i>${Win.saver.ext}</i>`;
+}
 inp.type="text";
+inp.id = `${Win.id}_save_input`;
 inp._bgcol="#2a2a3a";//WIN_COL_ON in desk.js
 inp._tcol="#DDD";//WIN_COL_ON in desk.js
 inp.style.caretColor = "#DDD";
@@ -271,7 +292,6 @@ savebut.innerText="\xa0Save\xa0";
 savebut.style.cssFloat="right";
 savebut._h = both;
 savebut._marr=5;
-//savebut.tabIndex="0";
 canbut = mk('button');
 canbut._fw="bold";
 canbut._bgcol="#dde";
@@ -279,58 +299,61 @@ canbut._marr=5;
 canbut.innerText="Cancel";
 canbut.style.cssFloat="right";
 canbut._h = both;
-//canbut.tabIndex="1";
 
-topwin._save_escape_cb=()=>{
+Win._save_escape_cb=()=>{
 	savebut.disabled = false;
 };
 savebut.onclick=()=>{
-	topwin.saver.cb(topwin, inp.value);
+	Win.saver.cb(Win, inp.value);
 	savebut.disabled = true;
 };
 canbut.onclick=()=>{
-	topwin.close_button.click();
+	Win.close_button.click();
 };
 
 botdiv._add(sp);
 botdiv._add(inp);
-//inp._bor="";
+botdiv._add(ext);
 inp.style.outline="none";
 inp.focus();
 botdiv._add(canbut);
 botdiv._add(savebut);
 tab_order = [inp, savebut, canbut];
-//log(inp);
-};
-//»
+
+};//»
+
+const reload = async(newpath)=>{//«
+	if (is_loading) return;
+	if (newpath) path = newpath;
+	is_loading = true;
+	Main.scrollTop=0;
+	icondv.innerHTML="";
+	await init(true);
+	_stat_num(`${dir.kids._keys.length-2} entries`);
+	if (Win.cursor) Win.cursor.set();
+};//»
 
 const init=(if_reinit)=>{//«
 
 return new Promise(async(Y,N)=>{
 
-
-	if (topwin.saver) {
+	if (Win.saver) {
 		make_save_dom();
 	}
-
-if (!path) {
-cwarn("No path given (topwin._fullpath)");
-	return;
-}
-	dir = await fs.pathToNode(path);
-	if (!dir) {
-if (path) poperr(`Directory not found: ${path}`);
-else cwarn("Opening in 'app mode'");
+	if (!path) {
+cwarn("No path given (Win._fullpath)");
 		return;
 	}
-if (dir.fullpath=="/mnt"){
-await fs.mountDir("www");
-}
-//log(dir);
-//Show a loading message in the Main window of the Folder app: //«
-//In apps/sys/Folder.js->init
-    if (!dir.done){
-        statnum("Getting entries...");
+	dir = await fs.pathToNode(path);
+	if (!dir) {
+		if (path) poperr(`Directory not found: ${path}`);
+		else cwarn("Opening in 'app mode'");
+		return;
+	}
+	if (dir.fullpath=="/mnt") await fs.mountDir("www");
+
+    if (!dir.done){//«
+        _stat_num("Getting entries...");
         let cb=(ents)=>{
             num_entries+=ents.length;
             stat_num();
@@ -356,185 +379,31 @@ await fs.mountDir("www");
         if (numdiv) numdiv._del();
         dir.done=true;
         load_dir();
-    }
-	else{
-		load_dir();
-	}
-//»
+    }//»
+	else load_dir();
+
 	if (dir.type!==FS_TYPE) {
 		num_entries = Object.keys(dir.kids).length-2;
 		stat_num();
 	}
 	stat_mess();
-
 	Y();
 });
 
 }//»
 
+//»
+
 //OBJ/CB«
 
-const reload = async(newpath)=>{//«
-	if (is_loading) return;
-	if (newpath) path = newpath;
-	is_loading = true;
-	Main.scrollTop=0;
-	icondv.innerHTML="";
-	await init(true);
-	statnum(`${dir.kids._keys.length-2} entries`);
-	if (topwin.cursor) topwin.cursor.set();
-};//»
 this.reload=reload;
-this.onescape=()=>{//«
-
-if (savebut) {
-let act = document.activeElement;
-if (act===savebut) {
-	savebut.blur();
-	return true;
-}
-if (act===canbut) {
-	canbut.blur();
-	return true;
-}
-}
-return false;
-};//»
-this.onkeydown = function(e,s) {//«
-
-if (save_input && (s=="TAB_" || s=="TAB_S")){
-	let act = document.activeElement;
-let ind = tab_order.indexOf(act);
-if (s.match(/_S$/)) ind--;
-else ind++;
-if (ind < 0) ind = tab_order.length-1;
-else if (ind == tab_order.length) ind = 0;
-tab_order[ind].focus();
-//log(ind);
-	return;
-}
-
-if (s=="r_")reload(path);
-else if (s=="0_"){
-	if (topwin.cursor&&topwin.cursor.ison()) {
-		topwin.cursor.zero();
-	}
-//topwin.cursor.set();
-}
-else if (s=="b_"||s=="b_C"){
-//log(path);
-if (path.match(/^\x2f+$/)) return;
-
-let arr = path.split("/");
-arr.pop();
-if (!prev_paths) prev_paths=[Win.fullpath];
-else prev_paths.unshift(Win.fullpath);
-let opts = {PREVPATHS: prev_paths, WINARGS: {}};
-topwin.setWinArgs(opts.WINARGS);
-if (topwin.saver) {
-	opts.SAVER = topwin.saver;
-}
-topwin.easyKill();
-Desk.open_file_by_path(arr.join("/"), null, opts);
-
-}
-else if (s=="f_"||s=="f_C"){
-if (!prev_paths) return;
-//log(JSON.stringify(prev_paths))
-let goto_path = prev_paths.shift();
-if (!goto_path){
-cwarn("Cannot go forward with goto_path ===", goto_path);
-return;
-}
-if (!prev_paths.length) prev_paths = undefined;
-let opts = {PREVPATHS: prev_paths, WINARGS: {}};
-topwin.setWinArgs(opts.WINARGS);
-if (topwin.saver) {
-	opts.SAVER = topwin.saver;
-}
-topwin.easyKill();
-//log(goto_path, opts);
-Desk.open_file_by_path(goto_path, null, opts);
-}
-else if (s=="s_"||s=="s_C"){
-
-//EJMNCYLKIFB
-if (topwin.saver) {
-//log("GOT SAVECB");
-	topwin.saver.cb(topwin);
-	topwin.saver=null;
-//	topwin._savecb = null;
-}
-else{
-//log("NO SAVECB");
-
-}
-
-}
-else if (s==="TAB_"){
-
-if (savebut) {
-e.preventDefault();
-let act = document.activeElement;
-
-if (act===savebut) canbut.focus();
-else {
-//log("?");
-	savebut.focus();
-}
-}
-}
-}//»
-this.onkill = function(if_reload, if_force) {//«
-	if (if_force){
-		if (topwin.saver) {
-			topwin.saver.cb(null, 1);
-			topwin.saver=null;
-//cwarn("HAVE SAVECB");
-//			topwin._savecb(null, 1);
-//			topwin._savecb = null;
-		}
-	}
-	icondv._del();
-}//»
-this.onresize = function() {//«
-
-	if (FOOTER_HGT) Main._h=_Main._h-FOOTER_HGT;
-
-	let cur = topwin.cursor;
-	if (!cur) return;
-	let icn = Main.lasticon;
-	if (!icn) return;
-	icn.iconElem.scrollIntoViewIfNeeded();
-	cur.curElem._loc(icn.iconElem.offsetLeft+2, icn.iconElem.offsetTop+2);
-
-}//»
-
-//this.onfocus=()=>{Main.focus();};
-//this.onblur=()=>{Main.blur();};
-this.onappinit=(arg, prevpaths)=>{
-prev_paths = prevpaths;
-//log(prev_paths);
-//log("PATH", arg);
-path = arg;
-if (!path) cerr("No path in onappinit!");
-init();
-};
-//this.onload=()=>{init();};
-this.update=()=>{
-//log("UPDATE");
-	statnum(`${dir.kids._keys.length-2} entries`);
-};
-this.add_icon=(icn)=>{Main.scrollTop=0;};
-this.stat=statcur;
-
 this.get_context=()=>{//«
 	let choices = [
-		"Folder",()=>{Desk.make_new_icon(topwin, FOLDER_APP)},
+		"Folder",()=>{Desk.make_new_icon(Win, FOLDER_APP)},
 		"Text File"
 	];  
-	if (topwin.saver) choices.push(null);
-	else choices.push(()=>{Desk.make_new_icon(topwin, "Text")});
+	if (Win.saver) choices.push(null);
+	else choices.push(()=>{Desk.make_new_icon(Win, "Text")});
 	let arr = [
 		"\u{1f381}\xa0New",
 		choices
@@ -548,11 +417,90 @@ this.get_context=()=>{//«
 		arr.push(()=>{this.show_hidden = true; this.reload()});
 	}   
 	return arr;
+};//»
+this.onescape=()=>{//«
+	if (savebut) {
+		let act = document.activeElement;
+		if (act===savebut) {
+			savebut.blur();
+			return true;
+		}
+		if (act===canbut) {
+			canbut.blur();
+			return true;
+		}
+	}
+	return false;
+};//»
+this.onkeydown = (e,s) => {//«
+
+if (save_input && (s=="TAB_" || s=="TAB_S")){
+	handle_save_tab(s);
+	return;
+}
+
+if (s=="r_") reload(path);
+else if (s=="0_") zero_cursor();
+else if (s=="b_"||s=="b_C") go_back();
+else if (s=="f_"||s=="f_C") go_forth();
+else if (s=="s_"||s=="s_C") do_save();
+
 }//»
+this.onkill = (if_reload, if_force) => {//«
+	if (if_force){
+		if (Win.saver) {
+			Win.saver.cb(null, 1);
+			Win.saver=null;
+		}
+	}
+	icondv._del();
+}//»
+this.onresize = () => {//«
+
+	let cur = Win.cursor;
+	if (!cur) return;
+	let icn = Main.lasticon;
+	if (!icn) return;
+	icn.iconElem.scrollIntoViewIfNeeded();
+	cur.curElem._loc(icn.iconElem.offsetLeft+globals.CUR_FOLDER_XOFF, icn.iconElem.offsetTop+globals.CUR_FOLDER_XOFF);
+
+}//»
+this.onappinit=(arg, prevpaths)=>{//«
+	Win.makeScrollable();
+	prev_paths = prevpaths;
+	path = arg;
+	if (!path) cerr("No path in onappinit!");
+	init();
+};//»
+this.update=()=>{_stat_num(`${dir.kids._keys.length-2} entries`);};
+this.add_icon=(icn)=>{Main.scrollTop=0;};
+this.stat=stat_cur;
 
 //»
 
-Main.focus();
-
 }
+
+
+
+
+
+
+
+/*Old«
+
+Removed from onkeydown
+else if (s==="TAB_"){
+
+if (savebut) {
+e.preventDefault();
+let act = document.activeElement;
+
+if (act===savebut) canbut.focus();
+else {
+	savebut.focus();
+}
+}
+}
+
+»*/
 
