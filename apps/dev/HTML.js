@@ -1,7 +1,7 @@
 
 
-import { util, api as capi } from "/sys/util.js";
-import { globals } from "/sys/config.js";
+import { util, api as capi } from "util";
+import { globals } from "config";
 
 //export const app = function(arg) {
 export const app = function(Win, Desk) {

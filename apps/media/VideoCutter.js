@@ -61,8 +61,8 @@ let SHOW_CLUSTER_MARKS_ON_INIT = true;
 
 //Imports«
 
-import { util, api as capi } from "/sys/util.js";
-import {globals} from "/sys/config.js";
+import { util, api as capi } from "util";
+import {globals} from "config";
 const {lowToHigh} = capi;
 const{ log, jlog, cwarn, cerr, isstr, isnum, make, mk, mkdv} = util;
 const {NS} = globals;
