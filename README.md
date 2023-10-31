@@ -59,7 +59,9 @@ To quickly toggle between opened and closed row folds with the Enter key, add th
 
 
 ### Inserting fold markers
-These are for easily inserting fold markers into the code file (from both normal and insert mode).
+
+These instructions will enable the easy insertion of fold markers into your
+code (from both normal and insert mode).
 
 To insert an open fold marker, invoked with Alt+o, add these lines:
 
