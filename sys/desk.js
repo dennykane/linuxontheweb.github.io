@@ -313,7 +313,7 @@ let	HI_WIN_Z = MIN_WIN_Z;
 
 const SAVEAS_BOTTOM_HGT = 30;
 
-let APP_BG_COL = "#271313";
+let APP_BG_COL = "#231010";
 let APP_TEXT_COL = "#ccc";
 
 const TASKBAR_HGT = 26;
