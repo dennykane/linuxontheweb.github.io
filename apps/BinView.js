@@ -1,20 +1,14 @@
 import { util, api as capi } from "/sys/util.js";
 import { globals } from "/sys/config.js";
 const{NS}=globals;
-const{log,cwarn,cerr, make}=util;
+const{log,cwarn,cerr, make, mkdv}=util;
 
-//export const app = function(arg) {
-export const app = function(Win, Desk) {
-
-//const {Core, Main, NS}=arg;
-
+export const app = function(Win) {
 
 //Var«
-//const{log,cwarn,cerr, globals}=Core;
-//const{util}=globals;
-const{make,mkdv}=util;
-const topwin = Win;
-const Main = Win.main;
+
+const {Main, Desk} = Win;
+
 let lines;
 let text_lines;
 let bin_lines;
@@ -42,6 +36,7 @@ let killed = false;
 //»
 
 //DOM«
+
 let wrapdiv = make('div');
 wrapdiv._bgcol="#000";
 wrapdiv._pos="absolute";
@@ -90,11 +85,7 @@ Main.appendChild(areadiv);
 textarea.focus();
 //»
 
-//»
-
-//Funcs«
-
-const statbar = topwin.status_bar;
+const statbar = Win.status_bar;
 statbar._w="100%";
 statbar._dis="flex";
 statbar.style.justifyContent="space-between";
@@ -104,6 +95,10 @@ const loaddiv = mkdv();
 const perdiv=mkdv();
 perdiv._padr=5;
 statbar._add(messdiv, loaddiv, perdiv);
+
+//»
+
+//Funcs«
 
 const stat=()=>{//«
 	messdiv.innerText='Spacebar toggles ascii view. Use the arrow/paging keys to scroll';
@@ -123,7 +118,7 @@ const getgrid=()=>{//«
     let iter = 0;
     wrapdiv._over="auto";
     while (true) {
-        if (topwin.killed) return;
+        if (Win.killed) return;
         str+=usech;
         tdiv.innerHTML = str;
         if (tdiv.scrollWidth > wrapdiv._w) {
@@ -257,9 +252,7 @@ const resize=(if_init)=>{//«
 //CBs«
 
 this.onresize=resize;
-
 this.onloadfile=arg=>{//«
-//	resize();
 	y=0;
 	scroll_num=0;
 	wrapdiv._w=Main.clientWidth;
