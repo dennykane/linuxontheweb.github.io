@@ -334,13 +334,13 @@ globals.CUR_FOLDER_XOFF=CUR_FOLDER_XOFF;
 globals.CUR_FOLDER_YOFF=CUR_FOLDER_YOFF;
 
 let DEF_BG_IMG_OP = 0.3;
-let DESK_ICON_BOR = "2px dotted rgba(255,255,64,0.66)";
+let DESK_ICON_BOR = "2px solid rgba(255,255,64,0.66)";
 let DESK_ICON_BG = "rgba(255,255,200,0)";
 let FOLDER_ICON_BOR = DESK_ICON_BOR;
 let FOLDER_ICON_BG = DESK_ICON_BG;
 let FOLDER_ICON_CUR_BOR = "2px solid #000";
 
-let CURBORWID=1;
+let CURBORWID=2;
 
 let CURBORSTY="solid";//dotted dashed solid double groove ridge inset outset none hidden 
 let CURBORCOL="#fff";
@@ -1610,7 +1610,6 @@ setTimeout(()=>{
 //Icons«
 
 const Icon = function(node, elem, observer){//«
-//log(node);
 //DOM«
 let d;
 let icn = this;
@@ -1645,7 +1644,6 @@ if (app=="Application"&&node.ref&&node.ref.appicon){
 	try{linkapp=JSON.parse(node.ref.appicon).app;}
 	catch(e){cerr(e);};
 }
-//log("APP",app);
 let ch = capi.getAppIcon(linkapp||app,{html:true});
 d.innerHTML=`<span class="iconw"><span class="iconi">${ch}</span></span><div class="iconl">${name}</div>`;
 d._z=ICON_Z;
@@ -1657,8 +1655,6 @@ wrapper.iconElem=d;
 let label = d.childNodes[1];
 label.iconElem = d;
 label.title = name;
-//wrapper.childNodes[0].title = app;
-
 //»
 
 //Listeners«
@@ -1882,8 +1878,11 @@ this.set_window_name = (name) => {//«
 this.off = do_vacate => {//«
 //	if (!(icn && icn.imgdiv)) return;
 	if (do_vacate && ICONS.includes(icn)) ICONS.splice(ICONS.indexOf(icn), 1);
-	icn.iconElem._bor= "2px solid transparent";
+//	icn.iconElem._bor= "2px solid transparent";
+	wrapper._bor="";
 	icn.iconElem._bgcol="";
+	label._bgcol="";
+	label._tcol="";
 	icn.isOn=false;
 	if (icn.parWin!==desk) {
 		if (ICONS.length===1) icn.parWin.app.stat(ICONS[0].fullname);
@@ -1891,25 +1890,23 @@ this.off = do_vacate => {//«
 	}
 }//»
 this.on = do_add => {//«
-//	if (!icn) return;
-//	if (icn.fake) return;
 	if (isMobile) return;
 	let iconelm = icn.iconElem;
 	if (do_add && !ICONS.includes(icn)) {
 		if (ICONS.length && (icn.parWin !== ICONS[0].parWin)) icon_array_off(9);
 		ICONS.push(icn);
 	}
+	wrapper._bor = "1px solid #ff0";
+	label._bgcol="#bb0";
+	label._tcol="#000";
 	if (iconelm.parentNode === desk) {
-		iconelm._bor= DESK_ICON_BOR;
 		iconelm._bgcol= DESK_ICON_BG;
 	}
 	else {
-		iconelm._bor= FOLDER_ICON_BOR;
 		iconelm._bgcol= FOLDER_ICON_BG;
 		if (ICONS.length===1) icn.parWin.app.stat(icn.fullname);
 		else icn.parWin.app.stat(`${ICONS.length} selected`);
 	}
-//HRYWKHDS
 	icn.isOn = true;
 }//»
 this.add_overlay = () => {//«
@@ -5663,8 +5660,8 @@ curElem.id="icon_cursor";
 curElem._pos="absolute";
 curElem._bor=`${CURBORWID}px ${CURBORSTY} ${CURBORCOL}`;
 curElem._bgcol=CURBGCOL;
-curElem._w=IGSX;
-curElem._h=IGSY;
+curElem._w=IGSX+2;
+curElem._h=IGSY+2;
 curElem._dis="none";
 curElem._op=1;
 curElem._mart=-1.5;
