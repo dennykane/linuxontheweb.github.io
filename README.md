@@ -12,15 +12,15 @@ Although this project includes a desktop environment, it is not primarily
 about that.  It is mainly about the idea that modern browsers now offer a
 programmatically accessible file system that exists within domain-specific
 "sandboxes."
-<a href="https://linuxontheweb.github.io/www/docs/what-it-is.html">Go here</a> to read
+<a href="https://linuxontheweb.github.io/www/docs/what-it-is.html">Click here</a> to read
 more.
+
+Try out the current version at 
+<a href="https://linuxontheweb.github.io">linuxontheweb.github.io</a>.
 
 <a href="https://linuxontheweb.github.io/www/docs/help.html">Here is the 
 official help page</a> for system users.
 
-
-Try out the current version at 
-<a href="https://linuxontheweb.github.io">linuxontheweb.github.io</a>.
 
 ## Local deployment
 
