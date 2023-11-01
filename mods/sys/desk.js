@@ -5819,7 +5819,6 @@ this.up=if_ctrl=>{//«
 		_y--;
 		if (_y<0) {
 			_y = Math.floor((winh()-this.yoff())/IGSY)-1;
-//			_x--;
 			if (_x<0) _x = DESK_GRID_W-1;
 		}
 		this.setpos(_x,_y);

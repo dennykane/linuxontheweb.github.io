@@ -192,8 +192,8 @@ and figure out the byte (not character!) offset of the range.
 
 //Imports«
 
-import { util, api as capi } from "/sys/util.js";
-import { globals } from "/sys/config.js";
+import { util, api as capi } from "util";
+import { globals } from "config";
 
 const{strnum, isarr, isstr, isnum, isobj, make, KC, kc, log, jlog, cwarn, cerr}=util;
 
