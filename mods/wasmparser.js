@@ -1,7 +1,4 @@
-import { util, api as capi } from "/sys/util.js";
-//import { globals } from "/sys/config.js";
-//const{NS}=globals;
-//const fsapi = NS.api.fs;
+import { util, api as capi } from "util";
 const{isarr, isstr, isnum, isobj, log, jlog, cwarn, cerr}=util;
 
 export const mod = function (){//«

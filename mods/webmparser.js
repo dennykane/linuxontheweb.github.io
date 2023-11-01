@@ -61,8 +61,8 @@ for (const codec of codecs) {
 »*/
 
 //Imports«
-import { util, api as capi } from "/sys/util.js";
-import { globals } from "/sys/config.js";
+import { util, api as capi } from "util";
+import { globals } from "config";
 
 const{NS}=globals;
 const fsapi = NS.api.fs;
