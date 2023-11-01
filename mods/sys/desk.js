@@ -2636,7 +2636,7 @@ const move_to_win_or_desk=()=>{//«
 		move_icons(DESK_PATH, {e:{clientX:x,clientY:y}});
 		return;
 	}
-	if (par===desk && !cur_is_on) return;
+	if (par===desk && !toOrigin && !cur_is_on) return;
 	for (let icn of ICONS) vacate_icon_slot(icn, true);
 	if (toOrigin){
 		x=0;
@@ -7961,7 +7961,9 @@ cwarn("There was an unattached icon in ICONS!");
 		else if (kstr.match(/_$/)){
 			if (check_input()) return;
 			if (kstr=="m_") return move_icon_array();
-			else if (kstr=="0_"&&CUR.isdesk()) return move_icon_array({toOrigin: true});
+			else if (kstr=="0_"&&!cwin) {
+				return move_icon_array({toOrigin: true});
+			}
 		}
 	}//»
 
