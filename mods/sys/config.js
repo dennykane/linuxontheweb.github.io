@@ -104,9 +104,9 @@ let MA = MEDIA_APP;
 let AA = "games.Arcade";
 const EXT_TO_APP_MAP={//«
 	app:"Application",
-    txt:TE,
-    js:TE,
-    json:TE,
+	txt:TE,
+	js:TE,
+	json:TE,
 	css:TE,
 	sh:TE,
 	jpg:IA,
@@ -121,9 +121,6 @@ const EXT_TO_APP_MAP={//«
 	html:HTML_APP,
 	nes: AA,
 	gb: AA
-//	ncft:5,
-//	glb: 6,
-//	fbx: 6
 };
 //»
 for (let k in EXT_TO_APP_MAP) ALL_EXTENSIONS.push(k);
